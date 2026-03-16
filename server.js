@@ -2,15 +2,17 @@ const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const cors = require('cors');
+const path = require('path'); // 新增 path 模組
 
 const app = express();
 app.use(cors());
+app.use(express.static(path.join(__dirname))); // 確保靜態目錄路徑正確
 
 const PORT = process.env.PORT || 3000;
 
-// 新增首頁路徑，方便確認伺服器狀態
+// 使用絕對路徑讀取 index.html
 app.get('/', (req, res) => {
-    res.send('祥老師投資戰情室 - 股價 API 伺服器運作中！<br>使用範例: /api/stock/2603');
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.get('/api/stock/:id', async (req, res) => {
