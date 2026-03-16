@@ -22,8 +22,15 @@ app.get('/api/stock/:id', async (req, res) => {
         const { data } = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
         const $ = cheerio.load(data);
         const price = $('.Fz\\(32px\\)').first().text();
-        const change = $('.Fz\\(20px\\)').first().text();
-        return { price, change };
+        const changeEl = $('.Fz\\(20px\\)').first();
+        const change = changeEl.text();
+        
+        // 透過類別判定漲跌：C($c-trend-up) 是紅, C($c-trend-down) 是綠
+        let trend = 'none';
+        if (changeEl.hasClass('C($c-trend-up)')) trend = 'up';
+        else if (changeEl.hasClass('C($c-trend-down)')) trend = 'down';
+        
+        return { price, change, trend };
     };
 
     try {
