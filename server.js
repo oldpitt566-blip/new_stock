@@ -8,20 +8,34 @@ app.use(cors());
 
 const PORT = process.env.PORT || 3000;
 
+// 新增首頁路徑，方便確認伺服器狀態
+app.get('/', (req, res) => {
+    res.send('祥老師投資戰情室 - 股價 API 伺服器運作中！<br>使用範例: /api/stock/2603');
+});
+
 app.get('/api/stock/:id', async (req, res) => {
     const stockId = req.params.id;
-    try {
-        const url = `https://tw.stock.yahoo.com/quote/${stockId}.TW`;
-        const { data } = await axios.get(url, {
-            headers: { 'User-Agent': 'Mozilla/5.0' }
-        });
+    const fetchFromYahoo = async (suffix) => {
+        const url = `https://tw.stock.yahoo.com/quote/${stockId}${suffix}`;
+        const { data } = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
         const $ = cheerio.load(data);
-        
-        // 抓取股價 (Yahoo 股市的選擇器可能會隨時間變動)
         const price = $('.Fz\\(32px\\)').first().text();
         const change = $('.Fz\\(20px\\)').first().text();
+        return { price, change };
+    };
+
+    try {
+        let result = await fetchFromYahoo('.TW');
+        // 如果抓不到價格，嘗試 .TWO (上櫃)
+        if (!result.price || result.price === '-') {
+            result = await fetchFromYahoo('.TWO');
+        }
         
-        res.json({ id: stockId, price, change });
+        if (!result.price || result.price === '-') {
+            throw new Error('Stock not found');
+        }
+        
+        res.json({ id: stockId, ...result });
     } catch (error) {
         res.status(500).json({ error: '無法取得股價' });
     }
