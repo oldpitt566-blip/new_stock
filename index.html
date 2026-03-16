@@ -485,24 +485,20 @@
                         if (container) {
                             const pEl = container.querySelector('.price');
                             let changeStr = data.change || "0";
-                            const trend = data.trend; // 從伺服器取得正確趨勢
+                            const trend = data.trend;
 
-                            // 清除原本可能含有的符號，再重新強制加入
-                            let rawChange = changeStr.replace(/[+-↑↓]/g, '').trim();
+                            // 拆開 Yahoo 格式 "5.00 (2.56%)"，只取前半部
+                            let changeParts = changeStr.split(' ');
+                            let rawVal = changeParts[0].replace(/[+-↑↓]/g, '').trim(); 
+                            
                             let finalSign = '';
                             let color = '#CCC';
+                            if (trend === 'up') { finalSign = '+'; color = '#FF3B30'; }
+                            else if (trend === 'down') { finalSign = '-'; color = '#00FF00'; }
 
-                            if (trend === 'up') {
-                                finalSign = '+';
-                                color = '#FF3B30';
-                            } else if (trend === 'down') {
-                                finalSign = '-';
-                                color = '#00FF00';
-                            }
-
-                            // 格式範例：+5.00 (2.56%)
+                            // 輸出範例：218.5 (+5.00)
                             pEl.style.color = color;
-                            pEl.innerHTML = `${data.price} <span class="change" style="color:${color}">${finalSign}${rawChange}</span>`;
+                            pEl.innerHTML = `${data.price} <span class="change" style="color:${color}">(${finalSign}${rawVal})</span>`;
                         }
                     }
                 } catch (e) {
