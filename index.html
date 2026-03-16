@@ -158,21 +158,40 @@
 
         .row-label { text-align: left; max-width: 1200px; margin: 0 auto 12px; font-weight: 900; font-size: 1.2rem; padding-left: 15px; border-left: 6px solid var(--primary); text-transform: uppercase; }
         
-        /* 靜態股價展示列樣式 */
-        .stock-summary-row { 
+        /* 股價展示列基礎樣式 */
+        .stock-summary-row, .ai-summary-row { 
             display: flex; flex-wrap: wrap; gap: 8px; width: 100%; max-width: 1200px; margin: 0 auto 15px; 
             justify-content: flex-start; padding: 0 15px; box-sizing: border-box;
+            z-index: 100; position: relative;
         }
-        .summary-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: rgba(255,255,255,0.03); padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
-        .group-label { font-size: 0.85rem; color: #aaa; font-weight: bold; border-right: 1px solid #444; padding-right: 10px; margin-right: 5px; }
+
+        /* 顯示邏輯：航海王專屬 */
+        [data-theme="shiang"] .stock-summary-row, 
+        [data-theme="ai"] .stock-summary-row { display: none !important; }
+
+        /* 顯示邏輯：AI 王專屬 */
+        .ai-summary-row { display: none; }
+        [data-theme="ai"] .ai-summary-row { display: flex; }
+        [data-theme="shiang"] .ai-summary-row { display: none; }
+
+        .summary-group { 
+            display: flex; align-items: center; gap: 6px; flex-wrap: wrap; 
+            background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 8px; 
+            border: 1px solid var(--primary);
+        }
+        
+        .group-label { font-size: 0.8rem; color: #888; font-weight: bold; border-right: 1px solid #444; padding-right: 8px; margin-right: 4px; }
+
         .stock-summary-item { 
-            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
-            padding: 6px 12px; border-radius: 4px; display: flex; align-items: center; gap: 8px;
-            min-width: 140px; justify-content: space-between;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            padding: 4px 10px; border-radius: 4px; display: flex; align-items: center; gap: 6px;
+            min-width: 120px; justify-content: space-between;
         }
-        .stock-summary-item .name { font-weight: bold; color: var(--gold); font-size: 0.95rem; white-space: nowrap; }
-        .stock-summary-item .price { font-family: monospace; font-size: 1.1rem; font-weight: 900; }
-        .stock-summary-item .change { font-size: 0.8rem; }
+
+        .stock-summary-item .name { font-weight: bold; color: var(--gold); font-size: 0.85rem; white-space: nowrap; }
+        [data-theme="ai"] .stock-summary-item .name { color: var(--accent); }
+        .stock-summary-item .price { font-family: monospace; font-size: 1rem; font-weight: 900; color: #fff; }
+        .stock-summary-item .change { font-size: 0.75rem; font-weight: bold; }
         
         .btn-wrapper { position: relative; width: 100%; }
         .del-badge { position: absolute; top: -10px; right: -10px; background: var(--accent); color: #fff; width: 32px; height: 32px; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; cursor: pointer; border: 2px solid #fff; z-index: 100; }
@@ -283,8 +302,9 @@
             </div>
             <div class="nav-row mini-row" id="presets-row" style="display:none; padding-top:0;"><div id="presets-list" style="display:contents"></div></div>
             <div class="row-label">台美股市監控</div><div class="nav-row draggable-row" id="row-1"></div>
+            
             <div class="row-label">航運、鐵礦石與能源</div>
-            <!-- 靜態個股資訊 -->
+            <!-- 航海王專屬：靜態個股資訊 -->
             <div id="stock-summary-row" class="stock-summary-row">
                 <div class="summary-group">
                     <span class="group-label">貨櫃</span>
@@ -301,6 +321,58 @@
                     <div class="stock-summary-item" id="summary-5608"><span class="name">四維航 5608</span><span class="price">--</span></div>
                 </div>
             </div>
+
+            <!-- AI 王專屬：靜態個股資訊 -->
+            <div id="ai-summary-row" class="ai-summary-row">
+                <div class="summary-group"><span class="group-label">大腦</span>
+                    <div class="stock-summary-item" id="summary-2330"><span class="name">台積電</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2454"><span class="name">聯發科</span><span class="price">--</span></div>
+                </div>
+                <div class="summary-group"><span class="group-label">散熱</span>
+                    <div class="stock-summary-item" id="summary-3017"><span class="name">奇鋐</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-3324"><span class="name">雙鴻</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-6805"><span class="name">富世達</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2421"><span class="name">建準</span><span class="price">--</span></div>
+                </div>
+                <div class="summary-group"><span class="group-label">機殼滑軌</span>
+                    <div class="stock-summary-item" id="summary-8210"><span class="name">勤誠</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-6117"><span class="name">迎廣</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2059"><span class="name">川湖</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-6417"><span class="name">南俊</span><span class="price">--</span></div>
+                </div>
+                <div class="summary-group"><span class="group-label">PCB&CCL</span>
+                    <div class="stock-summary-item" id="summary-2383"><span class="name">台光電</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2368"><span class="name">金像電</span><span class="price">--</span></div>
+                </div>
+                <div class="summary-group"><span class="group-label">載板</span>
+                    <div class="stock-summary-item" id="summary-3037"><span class="name">欣興</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-8046"><span class="name">南電</span><span class="price">--</span></div>
+                </div>
+                <div class="summary-group"><span class="group-label">組裝</span>
+                    <div class="stock-summary-item" id="summary-2317"><span class="name">鴻海</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2382"><span class="name">廣達</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-3231"><span class="name">緯創</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-6669"><span class="name">緯穎</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2376"><span class="name">技嘉</span><span class="price">--</span></div>
+                </div>
+                <div class="summary-group"><span class="group-label">封裝</span>
+                    <div class="stock-summary-item" id="summary-3711"><span class="name">日月光</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2449"><span class="name">京元電</span><span class="price">--</span></div>
+                </div>
+                <div class="summary-group"><span class="group-label">光收發</span>
+                    <div class="stock-summary-item" id="summary-4979"><span class="name">華星光</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-4977"><span class="name">眾達</span><span class="price">--</span></div>
+                </div>
+                <div class="summary-group"><span class="group-label">交換器</span>
+                    <div class="stock-summary-item" id="summary-2345"><span class="name">智邦</span><span class="price">--</span></div>
+                </div>
+                <div class="summary-group"><span class="group-label">光被動</span>
+                    <div class="stock-summary-item" id="summary-3363"><span class="name">上詮</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-3163"><span class="name">波若威</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-6442"><span class="name">光聖</span><span class="price">--</span></div>
+                </div>
+            </div>
+
             <div class="nav-row draggable-row" id="row-2"></div>
             <div class="row-label">綜合數據與自訂</div><div class="nav-row draggable-row" id="row-3"></div>
         </div>
@@ -323,7 +395,10 @@
         const RENDER_SERVER_URL = window.location.origin.includes('localhost') ? "http://localhost:3000" : window.location.origin;
 
         async function fetchStockPrices() {
-            const stocks = ["2603", "2609", "2615", "2637", "2606", "2605", "2641", "5608"];
+            const stocks = ["2603", "2609", "2615", "2637", "2606", "2605", "2641", "5608", 
+                            "2330", "2454", "3017", "3324", "6805", "2421", "8210", "6117", "2059", "6417",
+                            "2383", "2368", "3037", "8046", "2317", "2382", "3231", "6669", "2376",
+                            "3711", "2449", "4979", "4977", "2345", "3363", "3163", "6442"];
             for (const id of stocks) {
                 try {
                     const res = await fetch(`${RENDER_SERVER_URL}/api/stock/${id}`);
@@ -333,8 +408,12 @@
                         if (container) {
                             const pEl = container.querySelector('.price');
                             const changeStr = data.change || "0";
-                            const sign = changeStr.includes('+') ? '↑' : (changeStr.includes('-') ? '↓' : '');
-                            const color = changeStr.includes('+') ? '#FF3B30' : (changeStr.includes('-') ? '#00FF00' : '#FFF');
+                            const isUp = changeStr.includes('+');
+                            const isDown = changeStr.includes('-');
+                            const sign = isUp ? '↑' : (isDown ? '↓' : '');
+                            const color = isUp ? '#FF3B30' : (isDown ? '#00FF00' : '#CCC');
+                            
+                            // 股價數字與漲跌幅皆套用趨勢顏色
                             pEl.style.color = color;
                             pEl.innerHTML = `${data.price} <span class="change" style="color:${color}">${sign}${changeStr.replace(/[+-]/g, '')}</span>`;
                         }
