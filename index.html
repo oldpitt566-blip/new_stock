@@ -158,6 +158,22 @@
 
         .row-label { text-align: left; max-width: 1200px; margin: 0 auto 12px; font-weight: 900; font-size: 1.2rem; padding-left: 15px; border-left: 6px solid var(--primary); text-transform: uppercase; }
         
+        /* 靜態股價展示列樣式 */
+        .stock-summary-row { 
+            display: flex; flex-wrap: wrap; gap: 8px; width: 100%; max-width: 1200px; margin: 0 auto 15px; 
+            justify-content: flex-start; padding: 0 15px; box-sizing: border-box;
+        }
+        .summary-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: rgba(255,255,255,0.03); padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
+        .group-label { font-size: 0.85rem; color: #aaa; font-weight: bold; border-right: 1px solid #444; padding-right: 10px; margin-right: 5px; }
+        .stock-summary-item { 
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+            padding: 6px 12px; border-radius: 4px; display: flex; align-items: center; gap: 8px;
+            min-width: 140px; justify-content: space-between;
+        }
+        .stock-summary-item .name { font-weight: bold; color: var(--gold); font-size: 0.95rem; white-space: nowrap; }
+        .stock-summary-item .price { font-family: monospace; font-size: 1.1rem; font-weight: 900; }
+        .stock-summary-item .change { font-size: 0.8rem; }
+        
         .btn-wrapper { position: relative; width: 100%; }
         .del-badge { position: absolute; top: -10px; right: -10px; background: var(--accent); color: #fff; width: 32px; height: 32px; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; cursor: pointer; border: 2px solid #fff; z-index: 100; }
         body.manage-mode .del-badge { display: flex; }
@@ -267,7 +283,25 @@
             </div>
             <div class="nav-row mini-row" id="presets-row" style="display:none; padding-top:0;"><div id="presets-list" style="display:contents"></div></div>
             <div class="row-label">台美股市監控</div><div class="nav-row draggable-row" id="row-1"></div>
-            <div class="row-label">航運、鐵礦石與能源</div><div class="nav-row draggable-row" id="row-2"></div>
+            <div class="row-label">航運、鐵礦石與能源</div>
+            <!-- 靜態個股資訊 -->
+            <div id="stock-summary-row" class="stock-summary-row">
+                <div class="summary-group">
+                    <span class="group-label">貨櫃</span>
+                    <div class="stock-summary-item" id="summary-2603"><span class="name">長榮 2603</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2609"><span class="name">陽明 2609</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2615"><span class="name">萬海 2615</span><span class="price">--</span></div>
+                </div>
+                <div class="summary-group">
+                    <span class="group-label">散裝</span>
+                    <div class="stock-summary-item" id="summary-2637"><span class="name">慧洋 2637</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2606"><span class="name">裕民 2606</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2605"><span class="name">新興 2605</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2641"><span class="name">正德 2641</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-5608"><span class="name">四維航 5608</span><span class="price">--</span></div>
+                </div>
+            </div>
+            <div class="nav-row draggable-row" id="row-2"></div>
             <div class="row-label">綜合數據與自訂</div><div class="nav-row draggable-row" id="row-3"></div>
         </div>
         <div id="content"></div>
@@ -280,25 +314,30 @@
         const defaultBtns = {
             "row-1": [{name:"台股現貨", url:"https://www.cmoney.tw/forum/stock"},{name:"台指期夜盤", url:"https://www.cmoney.tw/forum/futures/TXF1?s=p"},{name:"美股現貨", url:"https://www.cmoney.tw/usfinance/ixic"},{name:"美股期貨", url:"https://www.cmoney.tw/usfinance/nq"}],
             "row-2": [
-                {name:"長榮 2603", url:"https://tw.stock.yahoo.com/quote/2603.TW", isExt:true, id:"2603"},
-                {name:"裕民 2606", url:"https://tw.stock.yahoo.com/quote/2606.TW", isExt:true, id:"2606"},
-                {name:"新興 2605", url:"https://tw.stock.yahoo.com/quote/2605.TW", isExt:true, id:"2605"},
                 {name:"歐線主連", url:"https://quote.eastmoney.com/qihuo/ecm.html?jump_to_web=true"},{name:"歐線次主連", url:"https://quote.eastmoney.com/qihuo/ecs.html"},{name:"鐵礦石主連", url:"https://quote.eastmoney.com/qihuo/im.html?jump_to_web=true"},{name:"Braemar", url:"https://www.braemarscreen.com/"},{name:"布蘭特原油", url:"https://tw.tradingview.com/symbols/UKOIL/", isExt:true},{name:"荷姆茲海峽", url:"https://www.marinetraffic.com/en/ais/home/centerx:56.4/centery:26.1/zoom:9", isExt:true}
             ],
             "row-3": [{name:"BDI 指數", url:"https://www.stockq.org/market/baltic_index.php"},{name:"記憶體報價", url:"https://www.trendforce.com.tw/price/dram/dram_spot"},{name:"美國經濟數據", url:"eco-data.html"},{name:"貪婪指數", url:"https://www.macromicro.me/charts/50108/cnn-fear-and-greed", isExt:true},{name:"融資融卷", url:"https://tw.stock.yahoo.com/margin-balance", isExt:true},{name:"即時新聞", url:"https://news.cnyes.com/news/cat/headline", isExt:true},{name:"美股指標股", url:"https://tw.tradingview.com/markets/stocks-usa/market-movers-large-cap/", isExt:true},{name:"台灣指標股", url:"https://tw.tradingview.com/markets/stocks-taiwan/market-movers-large-cap/", isExt:true},{name:"台股燈號", url:"https://index.ndc.gov.tw/n/zh_tw", isExt:true},{name:"融資維持率", url:"https://www.macromicro.me/charts/53117/taiwan-taiex-maintenance-margin", isExt:true},{name:"川普投顧", url:"https://truthsocial.com/@realDonaldTrump", isExt:true},{name:"比特幣", url:"https://tw.tradingview.com/symbols/BTCUSD/", isExt:true},{name:"SCFI 指數", url:"https://www.sse.net.cn/index/singleIndex?indexType=scfi", isExt:true},{name:"產業鏈查詢", url:"ai-chain.html"}]
         };
 
-        const RENDER_SERVER_URL = "https://your-app-name.onrender.com"; // 請將此處改為您部署後的網址
+        // 自動偵測當前網址為 API 伺服器
+        const RENDER_SERVER_URL = window.location.origin.includes('localhost') ? "http://localhost:3000" : window.location.origin;
 
         async function fetchStockPrices() {
-            const stocks = ["2603", "2606", "2605"];
+            const stocks = ["2603", "2609", "2615", "2637", "2606", "2605", "2641", "5608"];
             for (const id of stocks) {
                 try {
                     const res = await fetch(`${RENDER_SERVER_URL}/api/stock/${id}`);
                     const data = await res.json();
                     if (data.price) {
-                        const btn = document.querySelector(`[data-name*="${id}"] .btn`);
-                        if (btn) btn.innerHTML = `${btn.innerText.split(' ')[0]} ${id}<br><span style="color:var(--gold); font-size:1.1rem;">${data.price} (${data.change})</span>`;
+                        const container = document.getElementById(`summary-${id}`);
+                        if (container) {
+                            const pEl = container.querySelector('.price');
+                            const changeStr = data.change || "0";
+                            const sign = changeStr.includes('+') ? '↑' : (changeStr.includes('-') ? '↓' : '');
+                            const color = changeStr.includes('+') ? '#FF3B30' : (changeStr.includes('-') ? '#00FF00' : '#FFF');
+                            pEl.style.color = color;
+                            pEl.innerHTML = `${data.price} <span class="change" style="color:${color}">${sign}${changeStr.replace(/[+-]/g, '')}</span>`;
+                        }
                     }
                 } catch (e) {
                     console.error("無法更新股價: " + id, e);
