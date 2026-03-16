@@ -456,14 +456,15 @@
 
         function toggleSummary(rowId) {
             const el = document.getElementById(rowId);
+            if (!el) return;
             const toggle = el.querySelector('.summary-toggle');
             el.classList.toggle('is-collapsed');
             const isCollapsed = el.classList.contains('is-collapsed');
-            toggle.innerText = isCollapsed ? '▽' : '△';
+            if (toggle) toggle.innerText = isCollapsed ? '▽' : '△';
         }
 
         function openForum(id) {
-            // 台股代號為純數字，美股代號包含英文字母
+            if (!id) return;
             const isUS = /[a-zA-Z]/.test(id);
             const url = isUS 
                 ? `https://www.cmoney.tw/forum/usstock/${id}` 
@@ -476,17 +477,19 @@
                             "2330", "2454", "3017", "3324", "6805", "2421", "8210", "6117", "2059", "6417",
                             "2383", "2368", "3037", "8046", "2317", "2382", "3231", "6669", "2376",
                             "3711", "2449", "4979", "4977", "2345", "3363", "3163", "6442"];
+            
             for (const id of stocks) {
                 try {
-                    const res = await fetch(`${RENDER_SERVER_URL}/api/stock/${id}`);
-                    const data = await res.json();
+                    const response = await fetch(`${RENDER_SERVER_URL}/api/stock/${id}`);
+                    if (!response.ok) continue;
+                    const data = await response.json();
+                    
                     if (data && data.price) {
                         const container = document.getElementById(`summary-${id}`);
                         if (container) {
-                            // 確保點擊功能
-                            container.onclick = () => openForum(id);
-                            
                             const pEl = container.querySelector('.price');
+                            if (!pEl) continue;
+
                             const changeStr = data.change || "0";
                             const trend = data.trend;
 
@@ -498,18 +501,17 @@
                             if (trend === 'up') { finalSign = '+'; color = '#FF3B30'; }
                             else if (trend === 'down') { finalSign = '-'; color = '#00FF00'; }
 
-                            // 格式：218.5 (+5.00)
                             pEl.style.color = color;
                             pEl.innerHTML = `${data.price} <span class="change" style="color:${color}">(${finalSign}${rawVal})</span>`;
                         }
                     }
                 } catch (e) {
-                    console.error("無法更新股價: " + id, e);
+                    console.warn(`無法更新股價 ${id}:`, e.message);
                 }
             }
         }
-        setInterval(fetchStockPrices, 30000); // 每 30 秒更新一次
-        setTimeout(fetchStockPrices, 2000); // 啟動後 2 秒執行第一次更新
+        setInterval(fetchStockPrices, 30000);
+        setTimeout(fetchStockPrices, 2000);
 
         // 立即執行時鐘更新
         function updateClock() { 
