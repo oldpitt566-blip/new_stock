@@ -165,6 +165,18 @@
             z-index: 100; position: relative;
         }
 
+        /* 收合按鈕樣式 */
+        .summary-toggle {
+            position: absolute; top: -30px; right: 15px;
+            cursor: pointer; color: #fff; font-size: 1.2rem;
+            user-select: none; transition: 0.3s;
+            width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+        }
+        .summary-toggle:hover { opacity: 0.7; }
+
+        /* 收合狀態邏輯 */
+        .is-collapsed .summary-group { display: none !important; }
+
         /* 顯示邏輯：航海王專屬 */
         [data-theme="shiang"] .stock-summary-row, 
         [data-theme="ai"] .stock-summary-row { display: none !important; }
@@ -175,29 +187,78 @@
         [data-theme="shiang"] .ai-summary-row { display: none; }
 
         .summary-group { 
-            display: flex; align-items: center; gap: 6px; flex-wrap: wrap; 
-            background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 8px; 
-            border: 1px solid var(--primary);
+            display: flex; align-items: flex-start; gap: 6px; flex-wrap: wrap; 
+            background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; 
+            border: 1px solid var(--primary); width: 100%; box-sizing: border-box;
+            margin-bottom: 5px;
         }
         
-        .group-label { font-size: 0.8rem; color: #888; font-weight: bold; border-right: 1px solid #444; padding-right: 8px; margin-right: 4px; }
+        .group-label { 
+            width: 100%; font-size: 0.9rem; color: #aaa; font-weight: bold; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+            padding-bottom: 6px; margin-bottom: 6px; display: block;
+        }
+        [data-theme="ai"] .group-label { color: var(--accent); }
+        [data-theme="maritime"] .group-label { color: var(--gold); }
 
         .stock-summary-item { 
+            width: auto;
+            min-width: 150px;
             background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            padding: 4px 10px; border-radius: 4px; display: flex; align-items: center; gap: 6px;
-            min-width: 120px; justify-content: space-between;
+            padding: 6px 12px; border-radius: 4px; display: flex; align-items: center; gap: 10px;
+            justify-content: space-between; box-sizing: border-box;
+            cursor: pointer; transition: 0.2s ease;
+        }
+        .stock-summary-item:hover { 
+            background: rgba(255,255,255,0.15); 
+            transform: translateY(-2px);
+            border-color: var(--gold);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        [data-theme="ai"] .stock-summary-item:hover { border-color: var(--accent); }
+
+        .stock-summary-item .name { font-weight: bold; color: var(--gold); font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+        [data-theme="ai"] .stock-summary-item .name { color: var(--accent); }
+        .stock-summary-item .price { font-family: monospace; font-size: 1.1rem; font-weight: 900; color: #fff; text-align: right; flex-grow: 1; display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
+        .stock-summary-item .change { font-size: 0.85rem; font-weight: bold; white-space: nowrap; }
+
+        @media (max-width: 768px) {
+            .stock-summary-item { 
+                width: calc(50% - 4px); /* 手機版兩欄式 */
+                min-width: 0;
+                padding: 6px 8px;
+                gap: 4px;
+            }
+            .stock-summary-item .name { font-size: 0.8rem; max-width: 42%; }
+            .stock-summary-item .price { font-size: 0.9rem; gap: 2px; }
+            .stock-summary-item .change { font-size: 0.75rem; }
         }
 
-        .stock-summary-item .name { font-weight: bold; color: var(--gold); font-size: 0.85rem; white-space: nowrap; }
-        [data-theme="ai"] .stock-summary-item .name { color: var(--accent); }
-        .stock-summary-item .price { font-family: monospace; font-size: 1rem; font-weight: 900; color: #fff; }
-        .stock-summary-item .change { font-size: 0.75rem; font-weight: bold; }
+        @media (max-width: 400px) {
+            .stock-summary-item .name { font-size: 0.7rem; }
+            .stock-summary-item .price { font-size: 0.8rem; }
+            .stock-summary-item .change { font-size: 0.65rem; }
+        }
         
         .btn-wrapper { position: relative; width: 100%; }
         .del-badge { position: absolute; top: -10px; right: -10px; background: var(--accent); color: #fff; width: 32px; height: 32px; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; cursor: pointer; border: 2px solid #fff; z-index: 100; }
         body.manage-mode .del-badge { display: flex; }
         @keyframes shake { 0% { transform: rotate(0deg) } 25% { transform: rotate(1deg) } 75% { transform: rotate(-1deg) } 100% { transform: rotate(0deg) } }
         body.manage-mode .btn-wrapper:not(.dragging) .btn { animation: shake 0.3s infinite; pointer-events: none; }
+
+        /* 手機強制鎖定直向 CSS 修正 */
+        @media screen and (min-aspect-ratio: 13/9) and (max-width: 1024px) {
+            body {
+                width: 100vh;
+                height: 100vw;
+                overflow: hidden;
+                transform: rotate(-90deg);
+                transform-origin: top left;
+                position: absolute;
+                top: 100%;
+                left: 0;
+            }
+        }
 
         @media (max-width: 768px) { 
             #dashboard-grid-container { gap: 6px; } 
@@ -211,12 +272,9 @@
                 #dash-time { font-size: 1.6rem !important; } 
                 #dash-date { font-size: 0.9rem !important; }
             }
-            
-        /* 低耗能模式 */
-        body.low-power * { animation: none !important; transition: none !important; }
-        body.low-power .tradingview-widget-container { opacity: 0.8; }
+            /* 手機直向螢幕特別處理 */
+            @media (max-width: 500px) {
 
-        @media (max-width: 768px) { 
             #dashboard-grid-container { gap: 6px; } 
             #nav-toggle { padding: 6px 12px; font-size: 0.9rem; top: 10px; right: 10px; }
             #welcome-text h1 { font-size: 1.5rem; margin-bottom: 5px; }
@@ -293,7 +351,6 @@
                 <button id="btn-add" class="btn" onclick="addBtn()">新增</button>
                 <button id="btn-save" class="btn" onclick="saveCurrentLayout()">儲存</button>
                 <button id="manage-btn" class="btn" onclick="toggleManageMode()">管理</button>
-                <button id="btn-low-power" class="btn" onclick="toggleLowPower()">省電</button>
                 <div class="style-select-wrapper">
                     <button id="style-btn" class="btn">風格</button>
                     <div id="style-dropdown"><div class="style-option" onclick="setTheme('shiang')">祥老師</div><div class="style-option" onclick="setTheme('maritime')">航海王</div><div class="style-option" onclick="setTheme('ai')">AI王</div></div>
@@ -303,73 +360,76 @@
             <div class="nav-row mini-row" id="presets-row" style="display:none; padding-top:0;"><div id="presets-list" style="display:contents"></div></div>
             <div class="row-label">台美股市監控</div><div class="nav-row draggable-row" id="row-1"></div>
             
-            <div class="row-label">航運、鐵礦石與能源</div>
+            <div id="label-row-2" class="row-label">航運、鐵礦石與能源</div>
+
             <!-- 航海王專屬：靜態個股資訊 -->
-            <div id="stock-summary-row" class="stock-summary-row">
+            <div id="stock-summary-row" class="stock-summary-row is-collapsed">
+                <div class="summary-toggle" onclick="toggleSummary('stock-summary-row')">▽</div>
                 <div class="summary-group">
                     <span class="group-label">貨櫃</span>
-                    <div class="stock-summary-item" id="summary-2603"><span class="name">長榮 2603</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-2609"><span class="name">陽明 2609</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-2615"><span class="name">萬海 2615</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2603" onclick="openForum('2603')"><span class="name">長榮 2603</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2609" onclick="openForum('2609')"><span class="name">陽明 2609</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2615" onclick="openForum('2615')"><span class="name">萬海 2615</span><span class="price">--</span></div>
                 </div>
                 <div class="summary-group">
                     <span class="group-label">散裝</span>
-                    <div class="stock-summary-item" id="summary-2637"><span class="name">慧洋 2637</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-2606"><span class="name">裕民 2606</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-2605"><span class="name">新興 2605</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-2641"><span class="name">正德 2641</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-5608"><span class="name">四維航 5608</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2637" onclick="openForum('2637')"><span class="name">慧洋 2637</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2606" onclick="openForum('2606')"><span class="name">裕民 2606</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2605" onclick="openForum('2605')"><span class="name">新興 2605</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2641" onclick="openForum('2641')"><span class="name">正德 2641</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-5608" onclick="openForum('5608')"><span class="name">四維航 5608</span><span class="price">--</span></div>
                 </div>
             </div>
 
             <!-- AI 王專屬：靜態個股資訊 -->
-            <div id="ai-summary-row" class="ai-summary-row">
+            <div id="ai-summary-row" class="ai-summary-row is-collapsed">
+                <div class="summary-toggle" onclick="toggleSummary('ai-summary-row')">▽</div>
                 <div class="summary-group"><span class="group-label">大腦</span>
-                    <div class="stock-summary-item" id="summary-2330"><span class="name">台積電</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-2454"><span class="name">聯發科</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2330" onclick="openForum('2330')"><span class="name">台積電</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2454" onclick="openForum('2454')"><span class="name">聯發科</span><span class="price">--</span></div>
                 </div>
                 <div class="summary-group"><span class="group-label">散熱</span>
-                    <div class="stock-summary-item" id="summary-3017"><span class="name">奇鋐</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-3324"><span class="name">雙鴻</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-6805"><span class="name">富世達</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-2421"><span class="name">建準</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-3017" onclick="openForum('3017')"><span class="name">奇鋐</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-3324" onclick="openForum('3324')"><span class="name">雙鴻</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-6805" onclick="openForum('6805')"><span class="name">富世達</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2421" onclick="openForum('2421')"><span class="name">建準</span><span class="price">--</span></div>
                 </div>
                 <div class="summary-group"><span class="group-label">機殼滑軌</span>
-                    <div class="stock-summary-item" id="summary-8210"><span class="name">勤誠</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-6117"><span class="name">迎廣</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-2059"><span class="name">川湖</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-6417"><span class="name">南俊</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-8210" onclick="openForum('8210')"><span class="name">勤誠</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-6117" onclick="openForum('6117')"><span class="name">迎廣</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2059" onclick="openForum('2059')"><span class="name">川湖</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-6417" onclick="openForum('6417')"><span class="name">南俊</span><span class="price">--</span></div>
                 </div>
                 <div class="summary-group"><span class="group-label">PCB&CCL</span>
-                    <div class="stock-summary-item" id="summary-2383"><span class="name">台光電</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-2368"><span class="name">金像電</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2383" onclick="openForum('2383')"><span class="name">台光電</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2368" onclick="openForum('2368')"><span class="name">金像電</span><span class="price">--</span></div>
                 </div>
                 <div class="summary-group"><span class="group-label">載板</span>
-                    <div class="stock-summary-item" id="summary-3037"><span class="name">欣興</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-8046"><span class="name">南電</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-3037" onclick="openForum('3037')"><span class="name">欣興</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-8046" onclick="openForum('8046')"><span class="name">南電</span><span class="price">--</span></div>
                 </div>
                 <div class="summary-group"><span class="group-label">組裝</span>
-                    <div class="stock-summary-item" id="summary-2317"><span class="name">鴻海</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-2382"><span class="name">廣達</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-3231"><span class="name">緯創</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-6669"><span class="name">緯穎</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-2376"><span class="name">技嘉</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2317" onclick="openForum('2317')"><span class="name">鴻海</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2382" onclick="openForum('2382')"><span class="name">廣達</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-3231" onclick="openForum('3231')"><span class="name">緯創</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-6669" onclick="openForum('6669')"><span class="name">緯穎</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2376" onclick="openForum('2376')"><span class="name">技嘉</span><span class="price">--</span></div>
                 </div>
                 <div class="summary-group"><span class="group-label">封裝</span>
-                    <div class="stock-summary-item" id="summary-3711"><span class="name">日月光</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-2449"><span class="name">京元電</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-3711" onclick="openForum('3711')"><span class="name">日月光</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2449" onclick="openForum('2449')"><span class="name">京元電</span><span class="price">--</span></div>
                 </div>
                 <div class="summary-group"><span class="group-label">光收發</span>
-                    <div class="stock-summary-item" id="summary-4979"><span class="name">華星光</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-4977"><span class="name">眾達</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-4979" onclick="openForum('4979')"><span class="name">華星光</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-4977" onclick="openForum('4977')"><span class="name">眾達</span><span class="price">--</span></div>
                 </div>
                 <div class="summary-group"><span class="group-label">交換器</span>
-                    <div class="stock-summary-item" id="summary-2345"><span class="name">智邦</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2345" onclick="openForum('2345')"><span class="name">智邦</span><span class="price">--</span></div>
                 </div>
                 <div class="summary-group"><span class="group-label">光被動</span>
-                    <div class="stock-summary-item" id="summary-3363"><span class="name">上詮</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-3163"><span class="name">波若威</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-6442"><span class="name">光聖</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-3363" onclick="openForum('3363')"><span class="name">上詮</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-3163" onclick="openForum('3163')"><span class="name">波若威</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-6442" onclick="openForum('6442')"><span class="name">光聖</span><span class="price">--</span></div>
                 </div>
             </div>
 
@@ -394,6 +454,23 @@
         // 自動偵測當前網址為 API 伺服器
         const RENDER_SERVER_URL = window.location.origin.includes('localhost') ? "http://localhost:3000" : window.location.origin;
 
+        function toggleSummary(rowId) {
+            const el = document.getElementById(rowId);
+            const toggle = el.querySelector('.summary-toggle');
+            el.classList.toggle('is-collapsed');
+            const isCollapsed = el.classList.contains('is-collapsed');
+            toggle.innerText = isCollapsed ? '▽' : '△';
+        }
+
+        function openForum(id) {
+            // 台股代號為純數字，美股代號包含英文字母
+            const isUS = /[a-zA-Z]/.test(id);
+            const url = isUS 
+                ? `https://www.cmoney.tw/forum/usstock/${id}` 
+                : `https://www.cmoney.tw/forum/stock/${id}`;
+            window.open(url, '_blank');
+        }
+
         async function fetchStockPrices() {
             const stocks = ["2603", "2609", "2615", "2637", "2606", "2605", "2641", "5608", 
                             "2330", "2454", "3017", "3324", "6805", "2421", "8210", "6117", "2059", "6417",
@@ -406,6 +483,9 @@
                     if (data.price) {
                         const container = document.getElementById(`summary-${id}`);
                         if (container) {
+                            // 點擊事件綁定
+                            container.onclick = () => openForum(id);
+                            
                             const pEl = container.querySelector('.price');
                             const changeStr = data.change || "0";
                             const isUp = changeStr.includes('+');
@@ -415,7 +495,7 @@
                             
                             // 股價數字與漲跌幅皆套用趨勢顏色
                             pEl.style.color = color;
-                            pEl.innerHTML = `${data.price} <span class="change" style="color:${color}">${sign}${changeStr.replace(/[+-]/g, '')}</span>`;
+                            pEl.innerHTML = `${data.price} <span class="change" style="color:${color}">${sign}${changeStr}</span>`;
                         }
                     }
                 } catch (e) {
@@ -437,10 +517,6 @@
         setInterval(updateClock, 1000);
 
         async function requestWakeLock() { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } }
-        function releaseWakeLock() { if (wakeLock) { wakeLock.release(); wakeLock = null; } }
-
-        function toggleLowPower() { document.body.classList.toggle('low-power'); const isLP = document.body.classList.contains('low-power'); document.getElementById('btn-low-power').innerText = isLP ? '🚀 正常' : '省電'; localStorage.setItem('low_power_mode', isLP); }
-        function initLP() { if (localStorage.getItem('low_power_mode') === 'true') toggleLowPower(); }
 
         function filterButtons() { 
             const t = document.getElementById('search-input').value.toLowerCase(); 
@@ -450,7 +526,17 @@
             }); 
         }
 
-        function setTheme(t) { if (t === 'maritime') document.body.removeAttribute('data-theme'); else document.body.setAttribute('data-theme', t); localStorage.setItem('user_theme', t); document.getElementById('style-dropdown').classList.remove('show'); if (globalContainer.classList.contains('show-dashboard')) updateWidgets(); }
+        function setTheme(t) { 
+            if (t === 'maritime') document.body.removeAttribute('data-theme'); 
+            else document.body.setAttribute('data-theme', t); 
+            localStorage.setItem('user_theme', t); 
+            document.getElementById('style-dropdown').classList.remove('show'); 
+            
+            // 重新渲染以應用風格專屬的佈局變更
+            renderAllRows();
+
+            if (globalContainer.classList.contains('show-dashboard')) updateWidgets(); 
+        }
         function initTheme() { setTheme(localStorage.getItem('user_theme') || 'maritime'); }
 
         function showDashboard() { globalContainer.classList.remove('active'); globalContainer.classList.add('show-dashboard', 'nav-hidden', 'hide-ticker'); updateToggleText(); updateWidgets(); requestWakeLock(); }
@@ -538,21 +624,25 @@
         }
 
         function renderAllRows() {
+            const currentTheme = localStorage.getItem('user_theme') || 'maritime';
+            const label2 = document.getElementById('label-row-2');
+            if (label2) label2.innerText = (currentTheme === 'ai') ? 'AI 相關類股' : '航運、鐵礦石與能源';
+
             let saved = JSON.parse(localStorage.getItem('user_layout') || JSON.stringify(defaultBtns));
             const custom = JSON.parse(localStorage.getItem('user_btns') || "[]");
             
-            // 強制檢查 row-2 是否包含新按鈕，若無則合併 (解決 localStorage 沒更新問題)
-            ["2603", "2606", "2605"].forEach(id => {
-                const exists = saved["row-2"].some(b => b.id === id || (b.name && b.name.includes(id)));
-                if (!exists) {
-                    const newBtn = defaultBtns["row-2"].find(b => b.id === id);
-                    if (newBtn) saved["row-2"].unshift(newBtn); // 放到最前面
-                }
-            });
+            // 準備渲染用的資料複本
+            let rowData = { "row-1": [...saved["row-1"]], "row-2": [...saved["row-2"]], "row-3": [...saved["row-3"]] };
+
+            // AI 王專屬邏輯：將 Row 2 按鈕移至 Row 3
+            if (currentTheme === 'ai') {
+                rowData["row-3"] = [...rowData["row-2"], ...rowData["row-3"]];
+                rowData["row-2"] = []; 
+            }
 
             ["row-1", "row-2", "row-3"].forEach(rId => {
                 const row = document.getElementById(rId); if(!row) return; row.innerHTML = '';
-                let data = saved[rId] || []; if (rId === "row-3") custom.forEach(cb => { if (!data.find(db => db.name === cb.name)) data.push(cb) });
+                let data = rowData[rId] || []; if (rId === "row-3") custom.forEach(cb => { if (!data.find(db => db.name === cb.name)) data.push(cb) });
                 data.forEach(b => {
                     const w = document.createElement('div'); w.className = 'btn-wrapper'; w.setAttribute('data-name', b.name); w.setAttribute('data-raw', JSON.stringify(b)); w.setAttribute('draggable', isManageMode); addDL(w);
                     const btn = document.createElement('button'); btn.className = 'btn'; btn.innerText = b.name + (b.isExt ? " ↗" : "");
@@ -578,7 +668,17 @@
         document.addEventListener('click', () => { if (globalContainer.classList.contains('show-dashboard') && !wakeLock) requestWakeLock(); }, { once: false });
         document.addEventListener('visibilitychange', () => { if (wakeLock !== null && document.visibilityState === 'visible' && globalContainer.classList.contains('show-dashboard')) requestWakeLock(); });
 
-        initTheme(); initLP(); renderAllRows(); renderPresets(); iNP(); updateClock(); showDashboard();
+        async function lockOrientation() {
+            if (screen.orientation && screen.orientation.lock) {
+                try {
+                    await screen.orientation.lock('portrait');
+                } catch (e) {
+                    console.log("螢幕鎖定受限於瀏覽器或裝置政策: ", e);
+                }
+            }
+        }
+
+        initTheme(); renderAllRows(); renderPresets(); iNP(); updateClock(); showDashboard(); lockOrientation();
     </script>
 </body>
 </html>
