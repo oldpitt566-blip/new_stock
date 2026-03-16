@@ -480,23 +480,25 @@
                 try {
                     const res = await fetch(`${RENDER_SERVER_URL}/api/stock/${id}`);
                     const data = await res.json();
-                    if (data.price) {
+                    if (data && data.price) {
                         const container = document.getElementById(`summary-${id}`);
                         if (container) {
+                            // 確保點擊功能
+                            container.onclick = () => openForum(id);
+                            
                             const pEl = container.querySelector('.price');
-                            let changeStr = data.change || "0";
+                            const changeStr = data.change || "0";
                             const trend = data.trend;
 
-                            // 拆開 Yahoo 格式 "5.00 (2.56%)"，只取前半部
-                            let changeParts = changeStr.split(' ');
-                            let rawVal = changeParts[0].replace(/[+-↑↓]/g, '').trim(); 
+                            // 解析漲跌值，移除百分比與符號
+                            const parts = changeStr.split(' ');
+                            const rawVal = parts[0].replace(/[+-↑↓]/g, '').trim(); 
                             
-                            let finalSign = '';
-                            let color = '#CCC';
+                            let finalSign = '', color = '#CCC';
                             if (trend === 'up') { finalSign = '+'; color = '#FF3B30'; }
                             else if (trend === 'down') { finalSign = '-'; color = '#00FF00'; }
 
-                            // 輸出範例：218.5 (+5.00)
+                            // 格式：218.5 (+5.00)
                             pEl.style.color = color;
                             pEl.innerHTML = `${data.price} <span class="change" style="color:${color}">(${finalSign}${rawVal})</span>`;
                         }
