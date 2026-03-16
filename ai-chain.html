@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background-color: #0f0f1a;
+            color: #e0e0e0;
+            font-family: "Microsoft JhengHei", sans-serif;
+            margin: 0;
+            padding: 0;
+            scroll-behavior: smooth; /* 平滑滾動 */
+        }
+        /* 置頂導航選單 */
+        .nav-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(10, 10, 20, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 10px 0;
+            z-index: 1000;
+            border-bottom: 1px solid #6c5ce7;
+            text-align: center;
+        }
+        .chapter-select {
+            background: #1a1a2e;
+            color: #a29bfe;
+            border: 1px solid #6c5ce7;
+            padding: 8px 15px;
+            font-size: 1rem;
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 70px 20px 40px; /* 避開置頂選單 */
+        }
+        h2 {
+            color: #a29bfe;
+            text-align: center;
+            border-bottom: 2px solid #6c5ce7;
+            padding-bottom: 10px;
+            letter-spacing: 2px;
+            margin-top: 60px;
+            scroll-margin-top: 80px; /* 關鍵：跳轉時預留空間避開置頂選單 */
+        }
+        h2:first-of-type { margin-top: 0; }
+        h3 {
+            color: #00d2ff;
+            border-left: 4px solid #00d2ff;
+            padding-left: 10px;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }
+        .description-box {
+            background: rgba(108, 92, 231, 0.1);
+            border-left: 4px solid #6c5ce7;
+            padding: 15px;
+            margin: 20px 0;
+            line-height: 1.8;
+            color: #ccc;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: right;
+            border-bottom: 1px solid #333;
+        }
+        th {
+            background-color: rgba(108, 92, 231, 0.2);
+            color: #00d2ff;
+            font-size: 1rem;
+            /* 移除 white-space: nowrap，允許標題自動折行 */
+            line-height: 1.2;
+            vertical-align: middle;
+        }
+        td:first-child, td:nth-child(2), th:first-child, th:nth-child(2) {
+            text-align: left;
+        }
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .cat-cell {
+            font-weight: bold;
+            color: #f1c40f;
+            text-align: left;
+        }
+        .comp-cell {
+            color: #ffffff;
+            line-height: 1.6;
+            text-align: left;
+        }
+        .role-cell {
+            color: #aaa;
+            font-size: 0.95rem;
+            text-align: left;
+        }
+        .yoy-plus { color: #ff7675; font-weight: bold; }
+        .index-name { color: #ff7675; font-weight: bold; }
+        .trend-tag { color: #00d2ff; font-weight: bold; background: rgba(0, 210, 255, 0.1); padding: 2px 6px; border-radius: 3px; font-size: 0.85rem; margin-right: 5px; }
+        @media (max-width: 600px) {
+            th, td { padding: 8px; font-size: 0.8rem; }
+            .container { padding-top: 60px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-header">
+        <select class="chapter-select" onchange="location.href='#'+this.value">
+            <option value="section-newyear">春節加班優質股</option>
+            <option value="section-ai">AI 產業鏈核心佈局</option>
+            <option value="section-tsmc">台積電供應鏈重點</option>
+            <option value="section-memory">記憶體與 SSD 儲存</option>
+            <option value="section-shipping">全球航運與物流體系</option>
+        </select>
+    </div>
+
+    <div class="container">
+        
+        <!-- 春節加班優質股 -->
+        <h2 id="section-newyear">春節加班優質股 (2026 觀察清單)</h2>
+        <div class="description-box">
+            <strong style="color: #f1c40f; font-size: 1.1rem;">來自孫慶龍老師的選股方法</strong><br>
+            在縮減 30% 的工作天下，2026 年 2 月營收較 2025 年 2 月衰退，不僅是正常，30% 更是觀察的指標。月營收年減 30%，或年減 30% 上下 5%，都屬合理範圍。<br><br>
+            然而，換另一個角度想，如果一家公司的營收，非但沒有衰退，還逆勢成長，甚至繳出比沒有春節月份還要好的營收成績，合理推論，就是公司的訂單，已經多到必須「春節加班」才能消化完的地步。此外，由於員工在春節加班通常必須付出較高的加班費，因此除非訂單真得太多，否則一般公司都不會選擇「春節加班」一途。<br><br>
+            <strong style="color: #00d2ff;">篩選條件：</strong><br>
+            (一) 2025 年 11月、12月、2026 年 1月營收年增率皆超過 30%，且 2026 年 2月營收年增率也超過 20%。<br>
+            (二) 2025 年 EPS 或近 4 季 EPS 與 3/10 股價所計算的本益比在 50 倍以下。<br>
+            (三) 排除近四季 EPS 有虧損者。<br>
+            (四) 排除 KY 股。
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>代號</th>
+                    <th>股票</th>
+                    <th>11月 YOY</th>
+                    <th>12月 YOY</th>
+                    <th>1月 YOY</th>
+                    <th>2月 YOY</th>
+                    <th>3/10 收盤</th>
+                    <th>近4季 EPS</th>
+                    <th>本益比</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>5386</td><td>青雲</td><td>67%</td><td>69%</td><td>407%</td><td class="yoy-plus">1025%</td><td>314.5</td><td>8.61</td><td>36.5</td></tr>
+                <tr><td>2542</td><td>興富發</td><td>43%</td><td>234%</td><td>2481%</td><td class="yoy-plus">775%</td><td>36</td><td>2.48</td><td>14.5</td></tr>
+                <tr><td>3188</td><td>鑫龍騰</td><td>149%</td><td>383%</td><td>885%</td><td class="yoy-plus">508%</td><td>34.55</td><td>4.05</td><td>8.5</td></tr>
+                <tr><td>5289</td><td>宜鼎</td><td>110%</td><td>152%</td><td>307%</td><td class="yoy-plus">403%</td><td>905</td><td>21.72</td><td>41.7</td></tr>
+                <tr><td>2451</td><td>創見</td><td>146%</td><td>242%</td><td>441%</td><td class="yoy-plus">246%</td><td>220</td><td>12.98</td><td>16.9</td></tr>
+                <tr><td>8271</td><td>宇瞻</td><td>36%</td><td>34%</td><td>233%</td><td class="yoy-plus">194%</td><td>131</td><td>6.7</td><td>19.6</td></tr>
+                <tr><td>3231</td><td>緯創</td><td>195%</td><td>142%</td><td>152%</td><td class="yoy-plus">177%</td><td>129</td><td>7.81</td><td>16.5</td></tr>
+                <tr><td>8299</td><td>群聯</td><td>62%</td><td>93%</td><td>189%</td><td class="yoy-plus">169%</td><td>1745</td><td>41.98</td><td>41.6</td></tr>
+                <tr><td>8112</td><td>至上</td><td>81%</td><td>32%</td><td>73%</td><td class="yoy-plus">137%</td><td>77.7</td><td>5.02</td><td>15.5</td></tr>
+                <tr><td>3167</td><td>大量</td><td>53%</td><td>61%</td><td>120%</td><td class="yoy-plus">123%</td><td>294</td><td>6.26</td><td>47.0</td></tr>
+                <tr><td>3260</td><td>威剛</td><td>60%</td><td>101%</td><td>199%</td><td class="yoy-plus">114%</td><td>319</td><td>10.97</td><td>29.1</td></tr>
+                <tr><td>2345</td><td>智邦</td><td>80%</td><td>68%</td><td>72%</td><td class="yoy-plus">83%</td><td>1435</td><td>40.28</td><td>35.6</td></tr>
+                <tr><td>6139</td><td>亞翔</td><td>170%</td><td>165%</td><td>88%</td><td class="yoy-plus">81%</td><td>516</td><td>22.9</td><td>22.5</td></tr>
+                <tr><td>3017</td><td>奇鋐</td><td>142%</td><td>110%</td><td>150%</td><td class="yoy-plus">75%</td><td>1695</td><td>38.12</td><td>44.5</td></tr>
+                <tr><td>6191</td><td>精成科</td><td>84%</td><td>91%</td><td>93%</td><td class="yoy-plus">71%</td><td>94.2</td><td>5.99</td><td>15.7</td></tr>
+                <tr><td>2404</td><td>漢唐</td><td>100%</td><td>41%</td><td>59%</td><td class="yoy-plus">69%</td><td>1040</td><td>44.54</td><td>23.3</td></tr>
+                <tr><td>3324</td><td>雙鴻</td><td>78%</td><td>108%</td><td>122%</td><td class="yoy-plus">67%</td><td>938</td><td>28.26</td><td>33.2</td></tr>
+                <tr><td>5439</td><td>高技</td><td>135%</td><td>111%</td><td>130%</td><td class="yoy-plus">63%</td><td>261.5</td><td>10.54</td><td>24.8</td></tr>
+                <tr><td>6446</td><td>藥華藥</td><td>53%</td><td>70%</td><td>50%</td><td class="yoy-plus">57%</td><td>670</td><td>13.64</td><td>49.1</td></tr>
+                <tr><td>3171</td><td>汎洲流通</td><td>65%</td><td>53%</td><td>79%</td><td class="yoy-plus">54%</td><td>50.4</td><td>4</td><td>12.6</td></tr>
+                <tr><td>8210</td><td>勤誠</td><td>68%</td><td>68%</td><td>137%</td><td class="yoy-plus">50%</td><td>887</td><td>23.89</td><td>37.1</td></tr>
+                <tr><td>2376</td><td>技嘉</td><td>38%</td><td>72%</td><td>57%</td><td class="yoy-plus">47%</td><td>221</td><td>18.06</td><td>12.2</td></tr>
+                <tr><td>8086</td><td>宏捷科</td><td>67%</td><td>65%</td><td>90%</td><td class="yoy-plus">43%</td><td>129</td><td>5.43</td><td>23.8</td></tr>
+                <tr><td>2382</td><td>廣達</td><td>37%</td><td>95%</td><td>62%</td><td class="yoy-plus">43%</td><td>282.5</td><td>19.45</td><td>14.5</td></tr>
+                <tr><td>2449</td><td>京元電子</td><td>35%</td><td>33%</td><td>41%</td><td class="yoy-plus">41%</td><td>293</td><td>9.01</td><td>32.5</td></tr>
+                <tr><td>5469</td><td>瀚宇博</td><td>50%</td><td>54%</td><td>59%</td><td class="yoy-plus">39%</td><td>85.5</td><td>6.55</td><td>13.1</td></tr>
+                <tr><td>2374</td><td>佳能</td><td>76%</td><td>108%</td><td>110%</td><td class="yoy-plus">32%</td><td>70.7</td><td>1.86</td><td>38.0</td></tr>
+                <tr><td>2059</td><td>川湖</td><td>64%</td><td>53%</td><td>44%</td><td class="yoy-plus">31%</td><td>3060</td><td>103.23</td><td>29.6</td></tr>
+                <tr><td>6274</td><td>台燿</td><td>34%</td><td>61%</td><td>75%</td><td class="yoy-plus">27%</td><td>467</td><td>10.84</td><td>43.1</td></tr>
+                <tr><td>3030</td><td>德律</td><td>82%</td><td>37%</td><td>39%</td><td class="yoy-plus">25%</td><td>245</td><td>10.49</td><td>23.4</td></tr>
+            </tbody>
+        </table>
+
+        <!-- AI 產業鏈核心佈局 -->
+        <h2 id="section-ai">AI 產業鏈核心佈局</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>產業類別</th>
+                    <th>代表廠商 (股票代號)</th>
+                    <th>關鍵技術與定位</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="cat-cell">核心算力與平台</td>
+                    <td class="comp-cell">台積電 (2330)、聯發科 (2454)</td>
+                    <td class="role-cell">AI 的大腦與起點</td>
+                </tr>
+                <tr>
+                    <td class="cat-cell">散熱模組 (關鍵)</td>
+                    <td class="comp-cell">奇鋐 (3017)、雙鴻 (3324)、<br>富世達 (6805)、建準 (2421)</td>
+                    <td class="role-cell"><span class="trend-tag">液冷主流</span> 水冷板、快接頭與風扇。</td>
+                </tr>
+                <tr>
+                    <td class="cat-cell">機殼與滑軌</td>
+                    <td class="comp-cell">勤誠 (8210)、迎廣 (6117)、<br>川湖 (2059)、南俊國際 (6417)</td>
+                    <td class="role-cell">伺服器機構件，川湖全球市佔高。</td>
+                </tr>
+                <tr>
+                    <td class="cat-cell">PCB 與 CCL</td>
+                    <td class="comp-cell">台光電 (2383)、金像電 (2368)、<br>欣興 (3037)、南電 (8046)</td>
+                    <td class="role-cell">高層板 (20-30層) 與 ABF 載板。</td>
+                </tr>
+                <tr>
+                    <td class="cat-cell">組裝與 ODM</td>
+                    <td class="comp-cell">鴻海 (2317)、廣達 (2382)、緯創 (3231)、緯穎 (6669)</td>
+                    <td class="role-cell">系統整合與資料中心伺服器。</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- 台積電供應鏈重點 -->
+        <h2 id="section-tsmc">台積電供應鏈重點</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>分類類別</th>
+                    <th>代表廠商 (股票代號)</th>
+                    <th>關鍵成長動能</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="cat-cell">先進封裝設備</td>
+                    <td class="comp-cell">萬潤 (6187)、志聖 (2467)、弘塑 (3131)、均華 (6640)</td>
+                    <td class="role-cell">CoWoS 擴產受益，提供濕製程與封裝設備。</td>
+                </tr>
+                <tr>
+                    <td class="cat-cell">先進製程耗材</td>
+                    <td class="comp-cell">家登 (3680)、中砂 (1560)、辛耘 (3583)、亞力 (1514)</td>
+                    <td class="role-cell">光罩載具、鑽石碟、再生晶圓。</td>
+                </tr>
+                <tr>
+                    <td class="cat-cell">廠務工程</td>
+                    <td class="comp-cell">帆宣 (6196)、漢唐 (2404)、亞翔 (6139)、聖暉 (5536)</td>
+                    <td class="role-cell">無塵室與全球新廠建置。</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- 記憶體與 SSD 儲存 -->
+        <h2 id="section-memory">記憶體與 SSD 儲存產業鏈</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>環節</th>
+                    <th>代表廠商 (股票代號)</th>
+                    <th>2026 市場趨勢</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="cat-cell">晶粒 / 代工</td>
+                    <td class="comp-cell">南亞科 (2408)、華邦電 (2344)、美光、力積電 (6770)</td>
+                    <td class="role-cell"><span class="trend-tag">漲價循環</span> 利基型 DRAM 代工。</td>
+                </tr>
+                <tr>
+                    <td class="cat-cell">控制晶片</td>
+                    <td class="comp-cell">群聯 (8299)、慧榮 (SIMO)、瑞昱 (2379)</td>
+                    <td class="role-cell"><span class="trend-tag">企業級 SSD</span> QLC 大容量需求強。</td>
+                </tr>
+                <tr>
+                    <td class="cat-cell">模組品牌</td>
+                    <td class="comp-cell">宜鼎 (5289)、威剛 (3260)、十銓 (4967)</td>
+                    <td class="role-cell"><span class="trend-tag">邊緣 AI</span> 工業自動化高耐用儲存。</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- 全球航運與物流體系 -->
+        <h2 id="section-shipping">全球航運與物流體系</h2>
+        <table>
+            <thead>
+                <tr><th>類別</th><th>代表公司</th><th>重要指標</th></tr>
+            </thead>
+            <tbody>
+                <tr><td class="cat-cell">貨櫃航運</td><td class="comp-cell">長榮 (2603)、陽明 (2609)、萬海 (2615)</td><td class="role-cell">SCFI (最即時運價)</td></tr>
+                <tr><td class="cat-cell">散裝 (海岬型)</td><td class="comp-cell">裕民 (2606)、新興 (2605)、中航 (2612)</td><td class="role-cell">BCI 指數 (鐵礦砂)</td></tr>
+                <tr><td class="cat-cell">航空貨運</td><td class="comp-cell">華航 (2610)、長榮航 (2618)</td><td class="role-cell">TAC Index (電子品空運)</td></tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

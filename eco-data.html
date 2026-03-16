@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美國經濟數據監控</title>
+    <style>
+        :root {
+            --primary: #006241; --bg: #0a0a0a; --card-bg: #1a1a1a;
+            --text: #ffffff; --accent: #ffffff; --border: #333;
+        }
+        [data-theme="shiang"] {
+            --primary: #000; --bg: #ffffff; --card-bg: #f9f9f9;
+            --text: #1a1a1a; --accent: #000; --border: #ddd;
+        }
+        [data-theme="ai"] {
+            --primary: #6c5ce7; --bg: #050515; --card-bg: #0a0a25;
+            --text: #ffffff; --accent: #ffffff; --border: #4834d4;
+        }
+
+        body { 
+            background-color: var(--bg); color: var(--text); 
+            font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 20px;
+            transition: all 0.5s ease;
+        }
+
+        .header { 
+            position: sticky; top: 0; background: var(--bg); z-index: 100;
+            padding: 10px 0; border-bottom: 2px solid var(--primary);
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .main-grid { display: grid; grid-template-columns: 1fr 350px; gap: 20px; }
+        
+        .calendar-container { 
+            background: var(--card-bg); border: 1px solid var(--border); 
+            border-radius: 8px; height: 800px; overflow: hidden;
+        }
+
+        .info-panel { display: flex; flex-direction: column; gap: 20px; }
+
+        .data-card { 
+            background: var(--card-bg); border: 1px solid var(--border); 
+            border-radius: 8px; padding: 15px; 
+        }
+        
+        .data-card h3 { margin-top: 0; font-size: 1.1rem; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        
+        .stat-row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 0.95rem; }
+        .stat-val { font-family: monospace; font-weight: bold; color: #ffffff; text-shadow: 0 0 5px rgba(255,255,255,0.2); }
+
+        @media (max-width: 1000px) { .main-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2 style="margin:0">🇺🇸 美國經濟指標 & 財經日曆</h2>
+    </div>
+
+    <div class="main-grid">
+        <div class="calendar-container" id="tv-calendar"></div>
+
+        <div class="info-panel">
+            <div class="data-card">
+                <h3>聯準會利率 (Fed Rate)</h3>
+                <div class="stat-row"><span>當前利率</span><span class="stat-val">5.25% - 5.50%</span></div>
+                <div class="stat-row"><span>下次會議</span><span class="stat-val">2026/03/18</span></div>
+                <div class="stat-row"><span>市場預期</span><span class="stat-val">按兵不動 (85%)</span></div>
+            </div>
+
+            <div class="data-card">
+                <h3>通膨指標 (CPI/PCE)</h3>
+                <div class="stat-row"><span>核心 CPI YoY</span><span class="stat-val">3.2%</span></div>
+                <div class="stat-row"><span>核心 PCE YoY</span><span class="stat-val">2.8%</span></div>
+                <div class="stat-row"><span>目標值</span><span class="stat-val">2.0%</span></div>
+            </div>
+
+            <div class="data-card">
+                <h3>勞動力市場</h3>
+                <div class="stat-row"><span>失業率</span><span class="stat-val">3.9%</span></div>
+                <div class="stat-row"><span>非農就業</span><span class="stat-val">+215K</span></div>
+            </div>
+
+            <div class="data-card" style="border-color: var(--primary);">
+                <h3>祥老師提醒</h3>
+                <p style="font-size: 0.9rem; line-height: 1.6; margin: 5px 0;">
+                    數據公佈前後市場波動劇烈，建議<b>降低槓桿</b>。特別注意核心 PCE 數據，這是 Fed 最看重的通膨指標。
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function syncTheme() {
+            const theme = localStorage.getItem('user_theme') || 'maritime';
+            const tvTheme = (theme === 'shiang') ? 'light' : 'dark';
+            if (theme === 'maritime') document.body.removeAttribute('data-theme');
+            else document.body.setAttribute('data-theme', theme);
+            const container = document.getElementById('tv-calendar');
+            container.innerHTML = '';
+            const script = document.createElement('script');
+            script.src = "https://s3.tradingview.com/external-embedding/embed-widget-events.js";
+            script.async = true;
+            script.innerHTML = JSON.stringify({
+                "colorTheme": tvTheme,
+                "isTransparent": true,
+                "width": "100%",
+                "height": "100%",
+                "locale": "zh_TW",
+                "importanceFilter": "-1,0,1",
+                "currencyFilter": "USD"
+            });
+            container.appendChild(script);
+        }
+        window.addEventListener('storage', (e) => { if (e.key === 'user_theme') syncTheme(); });
+        syncTheme();
+        setInterval(syncTheme, 5000);
+    </script>
+</body>
+</html>
