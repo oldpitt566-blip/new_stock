@@ -441,7 +441,7 @@
 
     <script>
         const globalContainer = document.getElementById('container'), globalContent = document.getElementById('content');
-        let refreshConfigs = [], wakeLock = null, isManageMode = false, fmTimer = null;
+        let refreshConfigs = [], wakeLock = null, isManageMode = false;
 
         const defaultBtns = {
             "row-1": [{name:"台股現貨", url:"https://www.cmoney.tw/forum/stock"},{name:"台指期夜盤", url:"https://www.cmoney.tw/forum/futures/TXF1?s=p"},{name:"美股現貨", url:"https://www.cmoney.tw/usfinance/ixic"},{name:"美股期貨", url:"https://www.cmoney.tw/usfinance/nq"}],
@@ -451,241 +451,102 @@
             "row-3": [{name:"BDI 指數", url:"https://www.stockq.org/market/baltic_index.php"},{name:"記憶體報價", url:"https://www.trendforce.com.tw/price/dram/dram_spot"},{name:"美國經濟數據", url:"eco-data.html"},{name:"貪婪指數", url:"https://www.macromicro.me/charts/50108/cnn-fear-and-greed", isExt:true},{name:"融資融卷", url:"https://tw.stock.yahoo.com/margin-balance", isExt:true},{name:"即時新聞", url:"https://news.cnyes.com/news/cat/headline", isExt:true},{name:"美股指標股", url:"https://tw.tradingview.com/markets/stocks-usa/market-movers-large-cap/", isExt:true},{name:"台灣指標股", url:"https://tw.tradingview.com/markets/stocks-taiwan/market-movers-large-cap/", isExt:true},{name:"台股燈號", url:"https://index.ndc.gov.tw/n/zh_tw", isExt:true},{name:"融資維持率", url:"https://www.macromicro.me/charts/53117/taiwan-taiex-maintenance-margin", isExt:true},{name:"川普投顧", url:"https://truthsocial.com/@realDonaldTrump", isExt:true},{name:"比特幣", url:"https://tw.tradingview.com/symbols/BTCUSD/", isExt:true},{name:"SCFI 指數", url:"https://www.sse.net.cn/index/singleIndex?indexType=scfi", isExt:true},{name:"產業鏈查詢", url:"ai-chain.html"}]
         };
 
-        // 自動偵測當前網址為 API 伺服器
-        const RENDER_SERVER_URL = window.location.origin.includes('localhost') ? "http://localhost:3000" : window.location.origin;
+        const RENDER_SERVER_URL = window.location.origin;
 
         function toggleSummary(rowId) {
             const el = document.getElementById(rowId);
-            if (!el) return;
-            const toggle = el.querySelector('.summary-toggle');
-            el.classList.toggle('is-collapsed');
-            const isCollapsed = el.classList.contains('is-collapsed');
-            if (toggle) toggle.innerText = isCollapsed ? '▽' : '△';
+            if(el) {
+                el.classList.toggle('is-collapsed');
+                const btn = el.querySelector('.summary-toggle');
+                if(btn) btn.innerText = el.classList.contains('is-collapsed') ? '▽' : '△';
+            }
         }
 
         function openForum(id) {
-            if (!id) return;
-            const isUS = /[a-zA-Z]/.test(id);
-            const url = isUS 
-                ? `https://www.cmoney.tw/forum/usstock/${id}` 
-                : `https://www.cmoney.tw/forum/stock/${id}`;
+            const url = `https://www.cmoney.tw/forum/stock/${id}`;
             window.open(url, '_blank');
         }
 
         async function fetchStockPrices() {
-            const stocks = ["2603", "2609", "2615", "2637", "2606", "2605", "2641", "5608", 
-                            "2330", "2454", "3017", "3324", "6805", "2421", "8210", "6117", "2059", "6417",
-                            "2383", "2368", "3037", "8046", "2317", "2382", "3231", "6669", "2376",
-                            "3711", "2449", "4979", "4977", "2345", "3363", "3163", "6442"];
-            
+            const stocks = ["2603", "2609", "2615", "2637", "2606", "2605", "2641", "5608", "2330", "2454", "3017", "3324", "6805", "2421", "8210", "6117", "2059", "6417", "2383", "2368", "3037", "8046", "2317", "2382", "3231", "6669", "2376", "3711", "2449", "4979", "4977", "2345", "3363", "3163", "6442"];
             for (const id of stocks) {
                 try {
-                    const response = await fetch(`${RENDER_SERVER_URL}/api/stock/${id}`);
-                    if (!response.ok) continue;
-                    const data = await response.json();
-                    
+                    const res = await fetch(`${RENDER_SERVER_URL}/api/stock/${id}`);
+                    if (!res.ok) continue;
+                    const data = await res.json();
                     if (data && data.price) {
-                        const container = document.getElementById(`summary-${id}`);
-                        if (container) {
-                            const pEl = container.querySelector('.price');
-                            if (!pEl) continue;
-
-                            const changeStr = data.change || "0";
+                        const el = document.getElementById(`summary-${id}`);
+                        if (el) {
+                            const pEl = el.querySelector('.price');
                             const trend = data.trend;
-
-                            // 解析漲跌值，移除百分比與符號
-                            const parts = changeStr.split(' ');
-                            const rawVal = parts[0].replace(/[+-↑↓]/g, '').trim(); 
-                            
-                            let finalSign = '', color = '#CCC';
-                            if (trend === 'up') { finalSign = '+'; color = '#FF3B30'; }
-                            else if (trend === 'down') { finalSign = '-'; color = '#00FF00'; }
-
+                            const sign = trend === 'up' ? '+' : (trend === 'down' ? '-' : '');
+                            const color = trend === 'up' ? '#FF3B30' : (trend === 'down' ? '#00FF00' : '#ccc');
                             pEl.style.color = color;
-                            pEl.innerHTML = `${data.price} <span class="change" style="color:${color}">(${finalSign}${rawVal})</span>`;
+                            pEl.innerHTML = `${data.price} <span class="change" style="color:${color}">(${sign}${data.changeVal})</span>`;
                         }
                     }
-                } catch (e) {
-                    console.warn(`無法更新股價 ${id}:`, e.message);
-                }
+                } catch (e) {}
             }
         }
         setInterval(fetchStockPrices, 30000);
         setTimeout(fetchStockPrices, 2000);
 
-        // 立即執行時鐘更新
         function updateClock() { 
             const n = new Date(); const timeStr = n.getHours().toString().padStart(2, '0') + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0');
             const clockEl = document.getElementById('clock'), dashTime = document.getElementById('dash-time'), dashDate = document.getElementById('dash-date');
             if (clockEl) clockEl.innerText = timeStr; if (dashTime) dashTime.innerText = timeStr;
             if (dashDate) { const y = n.getFullYear(), mo = (n.getMonth() + 1).toString().padStart(2, '0'), d = n.getDate().toString().padStart(2, '0'), days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']; dashDate.innerText = `${y}/${mo}/${d} ${days[n.getDay()]}`; }
         }
-        updateClock(); // 腳本載入時立即調用
-        setInterval(updateClock, 1000);
-
-        async function requestWakeLock() { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } }
-
-        function filterButtons() { 
-            const t = document.getElementById('search-input').value.toLowerCase(); 
-            document.querySelectorAll('.btn-wrapper').forEach(el => { 
-                const name = el.getAttribute('data-name'); 
-                if (name) el.style.display = name.toLowerCase().includes(t) ? '' : 'none'; 
-            }); 
-        }
-
-        function setTheme(t) { 
-            if (t === 'maritime') document.body.removeAttribute('data-theme'); 
-            else document.body.setAttribute('data-theme', t); 
-            localStorage.setItem('user_theme', t); 
-            document.getElementById('style-dropdown').classList.remove('show'); 
-            
-            // 重新渲染以應用風格專屬的佈局變更
-            renderAllRows();
-
-            if (globalContainer.classList.contains('show-dashboard')) updateWidgets(); 
-        }
-        function initTheme() { setTheme(localStorage.getItem('user_theme') || 'maritime'); }
-
-        function showDashboard() { globalContainer.classList.remove('active'); globalContainer.classList.add('show-dashboard', 'nav-hidden', 'hide-ticker'); updateToggleText(); updateWidgets(); requestWakeLock(); }
-
-        function updateWidgets() {
-            const symbols = { 'w-tsm':'TSM', 'w-dji':'DJI', 'w-spx':'SPX500', 'w-ixic':'NSXUSD', 'vix':'VIX', 'btc':'BTCUSD', 'oil':'UKOIL', 'gold':'GOLD', 'twd':'USDTWD' };
-            for (const [id, sym] of Object.entries(symbols)) {
-                const el = document.getElementById(id); if (!el) continue; el.innerHTML = '';
-                const s = document.createElement('script'); s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js'; s.async = true;
-                s.innerHTML = JSON.stringify({ "symbol":sym, "width":"100%", "colorTheme":"dark", "isTransparent":true, "locale":"zh_TW" });
-                el.appendChild(s);
-            }
-        }
-
-        // 核心建立視窗函式：包含控制列
-        function createViewElement(u, iS=1.0) {
-            const w = document.createElement('div'); w.className = 'split-item';
-            const ctrl = document.createElement('div'); ctrl.className = 'split-controls';
-            const ifr = document.createElement('iframe'); 
-            ifr.setAttribute('sandbox', 'allow-forms allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-downloads allow-top-navigation-by-user-activation'); 
-            ifr.src = u; ifr.style.width='100%'; ifr.style.height='100%'; 
-            
-            const zI = document.createElement('span'); zI.className = 'zoom-info'; zI.innerText = Math.round(100*iS)+'%';
-            const myC = { ifr, scale: iS, url: u }; refreshConfigs.push(myC);
-            
-            const uZ = (d) => { 
-                myC.scale = Math.max(.3, Math.min(2.0, Math.round(10*(myC.scale+d))/10)); 
-                ifr.style.width = 100/myC.scale+'%'; ifr.style.height = 100/myC.scale+'%'; 
-                ifr.style.transform = `scale(${myC.scale})`; zI.innerText = Math.round(100*myC.scale)+'%'; 
-            };
-            if (iS !== 1.0) uZ(0);
-
-            const rB = createCtrlBtn('🔄', () => { ifr.src = u; });
-            const ziB = createCtrlBtn('➕', () => uZ(.1)); 
-            const zoB = createCtrlBtn('➖', () => uZ(-.1));
-            const exB = createCtrlBtn('↗', () => window.open(u, '_blank')); // 解決跨域阻擋的快速按鈕
-            
-            [rB, ziB, zoB, zI, exB].forEach(el => ctrl.appendChild(el));
-            w.appendChild(ctrl); w.appendChild(ifr); return w;
-        }
-        function createCtrlBtn(t, o) { const b = document.createElement('button'); b.className = 'ctrl-btn'; b.innerHTML = t; if (o) b.onclick = o; return b; }
-
-        function loadPage(b, u, iS=1.0) {
-            if (document.getElementById('nav').classList.contains('show-chks')) { if (b) b.classList.toggle('split-selected'); return; }
-            releaseWakeLock(); globalContainer.classList.remove('show-dashboard', 'hide-ticker'); globalContainer.classList.add('active', 'nav-hidden'); 
-            globalContent.innerHTML = ''; refreshConfigs = []; globalContent.classList.remove('split-grid');
-            globalContent.appendChild(createViewElement(u, iS));
-            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('selected', 'split-selected')); if (b) b.classList.add('selected');
-        }
-
-        function toggleSplitMode() { 
-            const n = document.getElementById('nav'), hint = document.getElementById('split-hint'); 
-            n.classList.toggle('show-chks'); 
-            const isSplit = n.classList.contains('show-chks');
-            document.getElementById('apply-split').style.display = isSplit ? 'inline-block' : 'none'; 
-            hint.style.display = isSplit ? 'block' : 'none';
-            document.querySelectorAll('.btn').forEach(b => b.classList.remove('split-selected')); 
-        }
-        function startSplit(urls = null) {
-            let s = []; if (urls) s = urls; else { document.querySelectorAll('.btn.split-selected').forEach(btn => { const raw = btn.closest('.btn-wrapper').getAttribute('data-raw'); if(raw) s.push(JSON.parse(raw)); }); }
-            if (s.length < 2) return alert("請選擇 2 個以上網頁");
-            releaseWakeLock(); globalContent.innerHTML = ''; refreshConfigs = []; globalContent.classList.add('split-grid'); globalContainer.classList.remove('show-dashboard', 'hide-ticker'); globalContainer.classList.add('active', 'nav-hidden'); updateToggleText();
-            const count = s.length, cols = count <= 2 ? count : (count <= 4 ? 2 : 3), rows = Math.ceil(count / cols);
-            globalContent.style.gridTemplateColumns = `repeat(${cols}, 1fr)`; globalContent.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-            s.forEach(item => globalContent.appendChild(createViewElement(item.url, item.scale || 1.0)));
-            if(!urls) toggleSplitMode();
-        }
-
-        function loadDashboardPage(type) { const maps = { 'tsm': 'https://www.cmoney.tw/usfinance/ixic', 'dji': 'https://www.cmoney.tw/usfinance/ixic', 'spx': 'https://www.cmoney.tw/usfinance/ixic', 'ixic': 'https://www.cmoney.tw/usfinance/ixic', 'vix': 'https://www.macromicro.me/charts/50108/cnn-fear-and-greed', 'btc': 'https://tw.tradingview.com/symbols/BTCUSD/', 'oil': 'https://tw.tradingview.com/symbols/UKOIL/', 'gold': 'https://tw.tradingview.com/symbols/GOLD/', 'twd': 'eco-data.html' }; if(maps[type]) loadPage(null, maps[type]); }
-        function saveCurrentLayout() { if (!globalContainer.classList.contains('active')) return alert("請先開啟網頁再儲存"); const n = prompt("配置名稱：", "我的配置 " + new Date().toLocaleTimeString()); if (!n) return; const p = { name: n, isSplit: globalContent.classList.contains('split-grid'), views: refreshConfigs.map(c => ({ url: c.url, scale: c.scale })) }; const ps = JSON.parse(localStorage.getItem('user_presets') || "[]"); ps.push(p); localStorage.setItem('user_presets', JSON.stringify(ps)); renderPresets(); }
-        function renderPresets() { const row = document.getElementById('presets-row'), list = document.getElementById('presets-list'), ps = JSON.parse(localStorage.getItem('user_presets') || "[]"); if (ps.length === 0) { row.style.display = 'none'; return; } row.style.display = 'grid'; list.innerHTML = ''; ps.forEach((p, i) => { const w = document.createElement('div'); w.className = 'btn-wrapper'; const btn = document.createElement('button'); btn.className = 'btn preset-btn'; btn.style.background = '#4834d4'; btn.innerText = p.name; btn.onclick = () => { if (isManageMode) return; if(p.isSplit) { startSplit(p.views); } else { loadPage(null, p.views[0].url, p.views[0].scale); } }; const del = document.createElement('div'); del.className = 'del-badge'; del.innerText = '×'; del.onclick = (e) => { e.stopPropagation(); if (confirm(`刪除配置「${p.name}」？`)) { ps.splice(i, 1); localStorage.setItem('user_presets', JSON.stringify(ps)); renderPresets(); } }; w.appendChild(btn); w.appendChild(del); list.appendChild(w); }); }
-
-        function addBtn() { const n = prompt("名稱："), u = prompt("網址：", "https://"); if (n && u) { const iE = confirm("是否另開？"), btns = JSON.parse(localStorage.getItem('user_btns') || "[]"); btns.push({ name: n, url: u, isExt: iE, custom: true }); localStorage.setItem('user_btns', JSON.stringify(btns)); renderAllRows(); } }
-        function toggleManageMode() { isManageMode = !isManageMode; document.body.classList.toggle('manage-mode', isManageMode); document.getElementById('manage-btn').innerText = isManageMode ? '✅ 完成' : '管理'; renderAllRows(); renderPresets(); }
-
-        function saveAllOrders() { const allData = {}; ["row-1", "row-2", "row-3"].forEach(rId => { const ws = Array.from(document.querySelectorAll("#" + rId + " .btn-wrapper")); allData[rId] = ws.map(w => JSON.parse(w.getAttribute('data-raw'))); }); localStorage.setItem('user_layout', JSON.stringify(allData)); }
-        function addDL(el) {
-            el.addEventListener('dragstart', e => { if (!isManageMode) return; dragSrcEl = el; el.classList.add('dragging'); });
-            el.addEventListener('dragover', e => { if (e.preventDefault) e.preventDefault(); return false; });
-            el.addEventListener('drop', e => { if (e.stopPropagation) e.stopPropagation(); if (dragSrcEl !== el && dragSrcEl.parentNode === el.parentNode) { const row = el.parentNode; const ws = Array.from(row.children); if (ws.indexOf(dragSrcEl) < ws.indexOf(el)) row.insertBefore(dragSrcEl, el.nextSibling); else row.insertBefore(dragSrcEl, el); saveAllOrders(); } return false; });
-            el.addEventListener('dragend', () => { el.classList.remove('dragging'); });
-            el.addEventListener('touchstart', e => { if (!isManageMode) return; dragSrcEl = el; el.classList.add('dragging'); }, { passive: true });
-            el.addEventListener('touchmove', e => { if (!isManageMode || !dragSrcEl) return; const t = e.touches[0], target = document.elementFromPoint(t.clientX, t.clientY), w = target ? target.closest('.btn-wrapper') : null; if (w && w !== dragSrcEl && w.parentNode === dragSrcEl.parentNode) { const row = w.parentNode; if (t.clientY > w.getBoundingClientRect().top + w.offsetHeight / 2) row.insertBefore(dragSrcEl, w.nextSibling); else row.insertBefore(dragSrcEl, w); } }, { passive: true });
-            el.addEventListener('touchend', () => { if (dragSrcEl) { dragSrcEl.classList.remove('dragging'); saveAllOrders(); dragSrcEl = null; } });
-        }
+        setInterval(updateClock, 1000); updateClock();
 
         function renderAllRows() {
-            const currentTheme = localStorage.getItem('user_theme') || 'maritime';
+            const theme = localStorage.getItem('user_theme') || 'maritime';
             const label2 = document.getElementById('label-row-2');
-            if (label2) label2.innerText = (currentTheme === 'ai') ? 'AI 相關類股' : '航運、鐵礦石與能源';
+            if (label2) label2.innerText = (theme === 'ai') ? 'AI 相關類股' : '航運、鐵礦石與能源';
 
-            let saved = JSON.parse(localStorage.getItem('user_layout') || JSON.stringify(defaultBtns));
+            let saved = JSON.parse(localStorage.getItem('user_layout') || "{}");
             const custom = JSON.parse(localStorage.getItem('user_btns') || "[]");
             
-            // 準備渲染用的資料複本
-            let rowData = { "row-1": [...saved["row-1"]], "row-2": [...saved["row-2"]], "row-3": [...saved["row-3"]] };
-
-            // AI 王專屬邏輯：將 Row 2 按鈕移至 Row 3
-            if (currentTheme === 'ai') {
-                rowData["row-3"] = [...rowData["row-2"], ...rowData["row-3"]];
-                rowData["row-2"] = []; 
-            }
-
             ["row-1", "row-2", "row-3"].forEach(rId => {
                 const row = document.getElementById(rId); if(!row) return; row.innerHTML = '';
-                let data = rowData[rId] || []; if (rId === "row-3") custom.forEach(cb => { if (!data.find(db => db.name === cb.name)) data.push(cb) });
+                let data = (saved && saved[rId]) ? saved[rId] : [...defaultBtns[rId]];
+                
+                if (theme === 'ai' && rId === "row-2") data = []; 
+                if (theme === 'ai' && rId === "row-3") data = [...defaultBtns["row-2"], ...data];
+                if (rId === "row-3") custom.forEach(cb => { if (!data.find(db => db.name === cb.name)) data.push(cb) });
+                
                 data.forEach(b => {
-                    const w = document.createElement('div'); w.className = 'btn-wrapper'; w.setAttribute('data-name', b.name); w.setAttribute('data-raw', JSON.stringify(b)); w.setAttribute('draggable', isManageMode); addDL(w);
+                    const w = document.createElement('div'); w.className = 'btn-wrapper';
                     const btn = document.createElement('button'); btn.className = 'btn'; btn.innerText = b.name + (b.isExt ? " ↗" : "");
-                    btn.onclick = () => { if (isManageMode) return; b.isExt ? window.open(b.url, '_blank') : loadPage(btn, b.url); };
-                    const del = document.createElement('div'); del.className = 'del-badge'; del.innerText = '×';
-                    del.onclick = (e) => { e.stopPropagation(); if (confirm(`刪除「${b.name}」？`)) { let cur = JSON.parse(localStorage.getItem('user_btns') || "[]").filter(i => i.name !== b.name); localStorage.setItem('user_btns', JSON.stringify(cur)); let lay = JSON.parse(localStorage.getItem('user_layout') || "{}"); if (lay[rId]) lay[rId] = lay[rId].filter(i => i.name !== b.name); localStorage.setItem('user_layout', JSON.stringify(lay)); renderAllRows(); } };
-                    w.appendChild(btn); if (b.custom) w.appendChild(del); row.appendChild(w);
-                })
+                    btn.onclick = () => b.isExt ? window.open(b.url, '_blank') : loadPage(btn, b.url);
+                    w.appendChild(btn); row.appendChild(w);
+                });
             });
         }
 
-        const nT = document.getElementById('nav-toggle'); let iD = false, sX, sY, iX, iY;
-        function iNP() { try { const p = JSON.parse(localStorage.getItem('nav_btn_pos')); if (p) { nT.style.left = p.left; nT.style.top = p.top; nT.style.right = 'auto'; } } catch (e) {} }
-        nT.onpointerdown = e => { iD = false; sX = e.clientX; sY = e.clientY; const r = nT.getBoundingClientRect(); iX = r.left; iY = r.top; nT.setPointerCapture(e.pointerId); nT.style.transition = 'none'; };
-        nT.onpointermove = e => { if (e.buttons !== 0) { const dx = e.clientX - sX, dy = e.clientY - sY; if (Math.abs(dx) > 5 || Math.abs(dy) > 5) { iD = true; nT.style.left = iX + dx + 'px'; nT.style.top = iY + dy + 'px'; nT.style.right = 'auto'; } } };
-        nT.onpointerup = e => { nT.releasePointerCapture(e.pointerId); nT.style.transition = '0.3s'; if (iD) localStorage.setItem('nav_btn_pos', JSON.stringify({ left: nT.style.left, top: nT.style.top })); else globalContainer.classList.toggle('nav-hidden'); updateToggleText(); };
-
-        function goHome() { releaseWakeLock(); globalContainer.classList.remove('active', 'show-dashboard', 'hide-ticker'); globalContainer.classList.add('nav-hidden'); updateToggleText(); globalContent.innerHTML = ''; globalContent.classList.remove('split-grid'); }
+        function setTheme(t) { localStorage.setItem('user_theme', t); if(t==='maritime') document.body.removeAttribute('data-theme'); else document.body.setAttribute('data-theme', t); document.getElementById('style-dropdown').classList.remove('show'); renderAllRows(); }
+        function initTheme() { setTheme(localStorage.getItem('user_theme') || 'maritime'); }
+        function goHome() { globalContainer.classList.add('nav-hidden'); globalContainer.classList.remove('active', 'show-dashboard', 'hide-ticker'); globalContent.innerHTML = ''; }
+        function showDashboard() { globalContainer.classList.remove('active'); globalContainer.classList.add('show-dashboard', 'nav-hidden', 'hide-ticker'); updateToggleText(); }
         function updateToggleText() { document.getElementById('nav-toggle').innerText = globalContainer.classList.contains('nav-hidden') ? '選單 🔽' : '選單 🔼'; }
         
-        document.getElementById('style-btn').addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('style-dropdown').classList.toggle('show'); });
-        window.addEventListener('click', e => { const d = document.getElementById('style-dropdown'), w = document.querySelector('.style-select-wrapper'); if (d && d.classList.contains('show') && !w.contains(e.target)) d.classList.remove('show'); });
-        document.addEventListener('click', () => { if (globalContainer.classList.contains('show-dashboard') && !wakeLock) requestWakeLock(); }, { once: false });
-        document.addEventListener('visibilitychange', () => { if (wakeLock !== null && document.visibilityState === 'visible' && globalContainer.classList.contains('show-dashboard')) requestWakeLock(); });
+        document.getElementById('nav-toggle').onclick = () => { globalContainer.classList.toggle('nav-hidden'); updateToggleText(); };
+        document.getElementById('style-btn').onclick = (e) => { e.stopPropagation(); document.getElementById('style-dropdown').classList.toggle('show'); };
+        window.onclick = (e) => { if (document.getElementById('style-dropdown').classList.contains('show') && e.target !== document.getElementById('style-btn')) document.getElementById('style-dropdown').classList.remove('show'); };
+
+        function loadPage(btn, url) { 
+            globalContainer.classList.add('active', 'nav-hidden'); 
+            globalContent.innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`; 
+            updateToggleText();
+        }
 
         async function lockOrientation() {
             if (screen.orientation && screen.orientation.lock) {
-                try {
-                    await screen.orientation.lock('portrait');
-                } catch (e) {
-                    console.log("螢幕鎖定受限於瀏覽器或裝置政策: ", e);
-                }
+                try { await screen.orientation.lock('portrait'); } catch (e) {}
             }
         }
 
-        initTheme(); renderAllRows(); renderPresets(); iNP(); updateClock(); showDashboard(); lockOrientation();
+        initTheme(); renderAllRows(); lockOrientation();
     </script>
 </body>
 </html>
