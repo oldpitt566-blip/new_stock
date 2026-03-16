@@ -483,19 +483,26 @@
                     if (data.price) {
                         const container = document.getElementById(`summary-${id}`);
                         if (container) {
-                            // 點擊事件綁定
-                            container.onclick = () => openForum(id);
-                            
                             const pEl = container.querySelector('.price');
-                            const changeStr = data.change || "0";
-                            const isUp = changeStr.includes('+');
-                            const isDown = changeStr.includes('-');
-                            const sign = isUp ? '↑' : (isDown ? '↓' : '');
-                            const color = isUp ? '#FF3B30' : (isDown ? '#00FF00' : '#CCC');
-                            
-                            // 股價數字與漲跌幅皆套用趨勢顏色
+                            let changeStr = data.change || "0";
+                            const trend = data.trend; // 從伺服器取得正確趨勢
+
+                            // 清除原本可能含有的符號，再重新強制加入
+                            let rawChange = changeStr.replace(/[+-↑↓]/g, '').trim();
+                            let finalSign = '';
+                            let color = '#CCC';
+
+                            if (trend === 'up') {
+                                finalSign = '+';
+                                color = '#FF3B30';
+                            } else if (trend === 'down') {
+                                finalSign = '-';
+                                color = '#00FF00';
+                            }
+
+                            // 格式範例：+5.00 (2.56%)
                             pEl.style.color = color;
-                            pEl.innerHTML = `${data.price} <span class="change" style="color:${color}">${sign}${changeStr}</span>`;
+                            pEl.innerHTML = `${data.price} <span class="change" style="color:${color}">${finalSign}${rawChange}</span>`;
                         }
                     }
                 } catch (e) {
