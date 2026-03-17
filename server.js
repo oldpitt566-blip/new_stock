@@ -23,19 +23,36 @@ app.get('/api/stock/:id', async (req, res) => {
             const $ = cheerio.load(data);
             
             const price = $('.Fz\\(32px\\)').first().text();
-            const changeEl = $('.Fz\\(20px\\)').first();
-            const changeFull = changeEl.text(); // 格式通常是 "5.00 (2.56%)"
             
+            // 抓取所有漲跌相關的元素
+            const changeEls = $('.Fz\\(20px\\)');
+            let changeFull = '';
             let trend = 'none';
-            if (changeEl.hasClass('C($c-trend-up)')) trend = 'up';
-            else if (changeEl.hasClass('C($c-trend-down)')) trend = 'down';
             
-            // 拆分漲跌值與百分比
-            let changeVal = '0';
-            if (changeFull && changeFull !== '-') {
-                const parts = changeFull.split(' ');
-                changeVal = parts[0].replace(/[+-↑↓]/g, '').trim();
+            changeEls.each((i, el) => {
+                const text = $(el).text().trim();
+                const hasTrendUp = $(el).hasClass('C($c-trend-up)');
+                const hasTrendDown = $(el).hasClass('C($c-trend-down)');
+                
+                if (hasTrendUp) trend = 'up';
+                else if (hasTrendDown) trend = 'down';
+                
+                // 尋找包含數字的文字，避免只抓到箭頭
+                if (/[0-9]/.test(text)) {
+                    changeFull = text;
+                    return false; // 找到第一個包含數字的就跳出
+                }
+            });
+
+            // 如果沒抓到 trend，從文字判定
+            if (trend === 'none') {
+                if (changeFull.includes('+')) trend = 'up';
+                else if (changeFull.includes('-')) trend = 'down';
             }
+
+            // 拆分漲跌值 (只取數字部分)
+            let changeVal = changeFull.split(' ')[0].replace(/[+-↑↓]/g, '').trim();
+            if (!changeVal || changeVal === '-') changeVal = '0';
 
             return { price, changeVal, trend };
         } catch (e) { return null; }
