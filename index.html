@@ -468,7 +468,10 @@
         }
 
         async function fetchStockPrices() {
-            const stocks = ["2603", "2609", "2615", "2637", "2606", "2605", "2641", "5608", "2330", "2454", "3017", "3324", "6805", "2421", "8210", "6117", "2059", "6417", "2383", "2368", "3037", "8046", "2317", "2382", "3231", "6669", "2376", "3711", "2449", "4979", "4977", "2345", "3363", "3163", "6442"];
+            const stocks = ["2603", "2609", "2615", "2637", "2606", "2605", "2641", "5608", 
+                            "2330", "2454", "3017", "3324", "6805", "2421", "8210", "6117", "2059", "6417",
+                            "2383", "2368", "3037", "8046", "2317", "2382", "3231", "6669", "2376",
+                            "3711", "2449", "4979", "4977", "2345", "3363", "3163", "6442"];
             for (const id of stocks) {
                 try {
                     const res = await fetch(`${RENDER_SERVER_URL}/api/stock/${id}`);
@@ -479,15 +482,26 @@
                         if (el) {
                             const pEl = el.querySelector('.price');
                             const trend = data.trend;
-                            const sign = trend === 'up' ? '+' : (trend === 'down' ? '-' : '');
                             const color = trend === 'up' ? '#FF3B30' : (trend === 'down' ? '#00FF00' : '#ccc');
+
+                            // 簡單格式處理：如果抓到的是原始字串 "5.00 (2.56%)"，則取前半部
+                            let displayChange = data.change || "";
+                            if (displayChange.includes(' ')) {
+                                displayChange = displayChange.split(' ')[0];
+                            }
+
+                            // 強制補上 + 號
+                            let finalSign = '';
+                            if (trend === 'up' && !displayChange.includes('+')) finalSign = '+';
+
                             pEl.style.color = color;
-                            pEl.innerHTML = `${data.price} <span class="change" style="color:${color}">(${sign}${data.changeVal})</span>`;
+                            pEl.innerHTML = `${data.price} <span class="change" style="color:${color}">(${finalSign}${displayChange})</span>`;
                         }
                     }
                 } catch (e) {}
             }
         }
+
         setInterval(fetchStockPrices, 30000);
         setTimeout(fetchStockPrices, 2000);
 
