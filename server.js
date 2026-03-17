@@ -16,24 +16,9 @@ app.get('/', (req, res) => {
 
 app.get('/api/stock/:id', async (req, res) => {
     const stockId = req.params.id;
-    try {
-        const url = `https://tw.stock.yahoo.com/quote/${stockId}.TW`;
-        const { data } = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-        const $ = cheerio.load(data);
-        
-        const price = $('.Fz\\(32px\\)').first().text();
-        const change = $('.Fz\\(20px\\)').first().text(); // 最簡單的抓取方式
-        
-        // 簡單判定漲跌顏色
-        let trend = 'none';
-        if ($('.Fz\\(20px\\)').first().hasClass('C($c-trend-up)')) trend = 'up';
-        else if ($('.Fz\\(20px\\)').first().hasClass('C($c-trend-down)')) trend = 'down';
-
-        res.json({ id: stockId, price, change, trend });
-    } catch (error) {
-        // 嘗試上櫃
+    const fetchFromYahoo = async (suffix) => {
         try {
-            const url = `https://tw.stock.yahoo.com/quote/${stockId}.TWO`;
+            const url = `https://tw.stock.yahoo.com/quote/${stockId}${suffix}`;
             const { data } = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
             const $ = cheerio.load(data);
             const price = $('.Fz\\(32px\\)').first().text();
@@ -41,10 +26,23 @@ app.get('/api/stock/:id', async (req, res) => {
             let trend = 'none';
             if ($('.Fz\\(20px\\)').first().hasClass('C($c-trend-up)')) trend = 'up';
             else if ($('.Fz\\(20px\\)').first().hasClass('C($c-trend-down)')) trend = 'down';
-            res.json({ id: stockId, price, change, trend });
-        } catch (e) {
+            return { price, change, trend };
+        } catch (e) { return null; }
+    };
+
+    try {
+        // 嘗試順序：.TW -> .TWO -> 無後綴 (美股)
+        let result = await fetchFromYahoo('.TW');
+        if (!result || !result.price || result.price === '-') result = await fetchFromYahoo('.TWO');
+        if (!result || !result.price || result.price === '-') result = await fetchFromYahoo('');
+        
+        if (result && result.price && result.price !== '-') {
+            res.json({ id: stockId, ...result });
+        } else {
             res.status(404).json({ error: 'Not found' });
         }
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
     }
 });
 
