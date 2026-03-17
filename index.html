@@ -527,15 +527,76 @@
         function setTheme(t) { localStorage.setItem('user_theme', t); if(t==='maritime') document.body.removeAttribute('data-theme'); else document.body.setAttribute('data-theme', t); document.getElementById('style-dropdown').classList.remove('show'); renderAllRows(); }
         function initTheme() { setTheme(localStorage.getItem('user_theme') || 'maritime'); }
         function goHome() { globalContainer.classList.add('nav-hidden'); globalContainer.classList.remove('active', 'show-dashboard', 'hide-ticker'); globalContent.innerHTML = ''; }
-        function showDashboard() { globalContainer.classList.remove('active'); globalContainer.classList.add('show-dashboard', 'nav-hidden', 'hide-ticker'); updateToggleText(); }
+        function showDashboard() { 
+            globalContainer.classList.remove('active'); 
+            globalContainer.classList.add('show-dashboard', 'nav-hidden', 'hide-ticker'); 
+            updateToggleText(); 
+            updateWidgets(); 
+        }
+
+        function updateWidgets() {
+            const symbols = { 'w-tsm':'TSM', 'w-dji':'DJI', 'w-spx':'SPX500', 'w-ixic':'NSXUSD', 'vix':'VIX', 'btc':'BTCUSD', 'oil':'UKOIL', 'gold':'GOLD', 'twd':'USDTWD' };
+            for (const [id, sym] of Object.entries(symbols)) {
+                const el = document.getElementById(id); if (!el) continue; el.innerHTML = '';
+                const s = document.createElement('script'); s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js'; s.async = true;
+                s.innerHTML = JSON.stringify({ "symbol":sym, "width":"100%", "colorTheme":"dark", "isTransparent":true, "locale":"zh_TW" });
+                el.appendChild(s);
+            }
+        }
         function updateToggleText() { document.getElementById('nav-toggle').innerText = globalContainer.classList.contains('nav-hidden') ? '選單 🔽' : '選單 🔼'; }
         
-        document.getElementById('nav-toggle').onclick = () => { globalContainer.classList.toggle('nav-hidden'); updateToggleText(); };
-        document.getElementById('style-btn').onclick = (e) => { e.stopPropagation(); document.getElementById('style-dropdown').classList.toggle('show'); };
+        const nT = document.getElementById('nav-toggle'); 
+        let isDragging = false, startX, startY, initX, initY;
+
+        // 初始化按鈕位置
+        function initNavPos() { 
+            try { 
+                const pos = JSON.parse(localStorage.getItem('nav_btn_pos')); 
+                if (pos) { nT.style.left = pos.left; nT.style.top = pos.top; nT.style.right = 'auto'; } 
+            } catch (e) {} 
+        }
+
+        nT.onpointerdown = e => { 
+            isDragging = false; 
+            startX = e.clientX; startY = e.clientY; 
+            const rect = nT.getBoundingClientRect(); 
+            initX = rect.left; initY = rect.top; 
+            nT.setPointerCapture(e.pointerId); 
+            nT.style.transition = 'none'; 
+        };
+
+        nT.onpointermove = e => { 
+            if (e.buttons !== 0) { 
+                const dx = e.clientX - startX, dy = e.clientY - startY; 
+                if (Math.abs(dx) > 5 || Math.abs(dy) > 5) { 
+                    isDragging = true; 
+                    nT.style.left = (initX + dx) + 'px'; 
+                    nT.style.top = (initY + dy) + 'px'; 
+                    nT.style.right = 'auto'; 
+                } 
+            } 
+        };
+
+        nT.onpointerup = e => { 
+            nT.releasePointerCapture(e.pointerId); 
+            nT.style.transition = '0.3s'; 
+            if (isDragging) { 
+                localStorage.setItem('nav_btn_pos', JSON.stringify({ left: nT.style.left, top: nT.style.top })); 
+            } else { 
+                globalContainer.classList.toggle('nav-hidden'); 
+                updateToggleText(); 
+            } 
+        };
+
+        document.getElementById('style-btn').onclick = (e) => {
+ e.stopPropagation(); document.getElementById('style-dropdown').classList.toggle('show'); };
         window.onclick = (e) => { if (document.getElementById('style-dropdown').classList.contains('show') && e.target !== document.getElementById('style-btn')) document.getElementById('style-dropdown').classList.remove('show'); };
 
         function loadPage(btn, url) { 
+            // 移除儀表板狀態，啟用 active 狀態
+            globalContainer.classList.remove('show-dashboard');
             globalContainer.classList.add('active', 'nav-hidden'); 
+            
             globalContent.innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`; 
             updateToggleText();
         }
@@ -546,7 +607,7 @@
             }
         }
 
-        initTheme(); renderAllRows(); lockOrientation();
+        initTheme(); renderAllRows(); lockOrientation(); initNavPos(); showDashboard();
     </script>
 </body>
 </html>
