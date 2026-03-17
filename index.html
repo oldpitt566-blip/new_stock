@@ -191,11 +191,27 @@
         [data-theme="ai"] .stock-summary-row { display: none !important; }
 
         .ai-summary-row { display: none; }
-        .shiang-summary-row { display: none !important; } /* 預設隱藏 */
+        .shiang-summary-row { display: none !important; } 
 
         [data-theme="ai"] .ai-summary-row { display: flex !important; }
-        [data-theme="shiang"] .shiang-summary-row { display: flex !important; } /* 強制顯示 */
+        [data-theme="shiang"] .shiang-summary-row { display: flex !important; } 
         [data-theme="shiang"] .ai-summary-row { display: none !important; }
+
+        /* 標題顯示修正：祥老師與航海王都顯示 Row 2 標題，只有 AI 王隱藏 */
+        #label-row-2 { display: block !important; }
+        body[data-theme="ai"] #label-row-2 { display: none !important; }
+        body[data-theme="shiang"] #label-row-2 { display: block !important; }
+        
+        /* 相關類股標題互斥邏輯 */
+        #label-maritime-related { display: block; }
+        body[data-theme="shiang"] #label-maritime-related,
+        body[data-theme="ai"] #label-maritime-related { display: none !important; }
+        
+        #label-related-stocks { display: none; }
+        body[data-theme="shiang"] #label-related-stocks { display: block !important; }
+        
+        #label-ai-related { display: none; }
+        body[data-theme="ai"] #label-ai-related { display: block !important; }
 
         .summary-group { 
             display: flex; align-items: flex-start; gap: 6px; flex-wrap: wrap; 
@@ -210,6 +226,15 @@
 
         #label-related-stocks { display: none; }
         [data-theme="shiang"] #label-related-stocks { display: block !important; }
+
+        #label-ai-related { display: none; }
+        [data-theme="ai"] #label-ai-related { display: block !important; }
+
+        #label-maritime-related { display: block; }
+        [data-theme="ai"] #label-maritime-related, [data-theme="shiang"] #label-maritime-related { display: none !important; }
+
+        #label-row-2 { display: block; }
+        [data-theme="ai"] #label-row-2, [data-theme="shiang"] #label-row-2 { display: none !important; }
 
         /* 祥老師風格標籤列 */
         .shiang-tab-row {
@@ -557,37 +582,22 @@
                     <div class="stock-summary-item" id="summary-s-2211" onclick="openForum('2211')"><span class="name">長榮鋼 2211</span><span class="price">--</span></div>
                 </div>
             </div>
-            
-            <div id="label-row-2" class="row-label">航運、鐵礦石與能源</div>
 
-            <!-- 航海王專屬：靜態個股資訊 -->
-            <div id="stock-summary-row" class="stock-summary-row is-collapsed">
-                <div class="summary-toggle" onclick="toggleSummary('stock-summary-row')">▽</div>
-                <div class="summary-group permanent-show">
-                    <span class="group-label">熱門航運</span>
-                    <div class="stock-summary-item" id="summary-2603" onclick="openForum('2603')"><span class="name">長榮 2603</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-2606" onclick="openForum('2606')"><span class="name">裕民 2606</span><span class="price">--</span></div>
-                </div>
-                
-                <div class="summary-group collapsible-group">
-                    <span class="group-label">貨櫃</span>
-                    <div class="stock-summary-item" id="summary-2609" onclick="openForum('2609')"><span class="name">陽明 2609</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-2615" onclick="openForum('2615')"><span class="name">萬海 2615</span><span class="price">--</span></div>
-                </div>
-                <div class="summary-group collapsible-group">
-                    <span class="group-label">散裝</span>
-                    <div class="stock-summary-item" id="summary-2637" onclick="openForum('2637')"><span class="name">慧洋 2637</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-2605" onclick="openForum('2605')"><span class="name">新興 2605</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-2641" onclick="openForum('2641')"><span class="name">正德 2641</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-5608" onclick="openForum('5608')"><span class="name">四維航 5608</span><span class="price">--</span></div>
-                </div>
-            </div>
-
-            <!-- AI 王專屬：靜態個股資訊 -->
+            <div id="label-ai-related" class="row-label">AI 相關類股</div>
+            <!-- AI 王專屬：靜態個股資訊 (已移至此處) -->
             <div id="ai-summary-row" class="ai-summary-row is-collapsed">
                 <div class="summary-toggle" onclick="toggleSummary('ai-summary-row')">▽</div>
-                <div class="summary-group collapsible-group"><span class="group-label">大腦</span>
+                <!-- 永久顯示區 -->
+                <div class="summary-group permanent-show">
+                    <span class="group-label">AI 核心</span>
                     <div class="stock-summary-item" id="summary-2330" onclick="openForum('2330')"><span class="name">台積電 2330</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2317" onclick="openForum('2317')"><span class="name">鴻海 2317</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2382" onclick="openForum('2382')"><span class="name">廣達 2382</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-6669" onclick="openForum('6669')"><span class="name">緯穎 6669</span><span class="price">--</span></div>
+                </div>
+                
+                <!-- 收合區 -->
+                <div class="summary-group collapsible-group"><span class="group-label">大腦</span>
                     <div class="stock-summary-item" id="summary-2454" onclick="openForum('2454')"><span class="name">聯發科 2454</span><span class="price">--</span></div>
                 </div>
                 <div class="summary-group collapsible-group"><span class="group-label">散熱</span>
@@ -611,10 +621,7 @@
                     <div class="stock-summary-item" id="summary-8046" onclick="openForum('8046')"><span class="name">南電 8046</span><span class="price">--</span></div>
                 </div>
                 <div class="summary-group collapsible-group"><span class="group-label">組裝</span>
-                    <div class="stock-summary-item" id="summary-2317" onclick="openForum('2317')"><span class="name">鴻海 2317</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-2382" onclick="openForum('2382')"><span class="name">廣達 2382</span><span class="price">--</span></div>
                     <div class="stock-summary-item" id="summary-3231" onclick="openForum('3231')"><span class="name">緯創 3231</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-6669" onclick="openForum('6669')"><span class="name">緯穎 6669</span><span class="price">--</span></div>
                     <div class="stock-summary-item" id="summary-2376" onclick="openForum('2376')"><span class="name">技嘉 2376</span><span class="price">--</span></div>
                 </div>
                 <div class="summary-group collapsible-group"><span class="group-label">封裝</span>
@@ -628,6 +635,10 @@
                 <div class="summary-group collapsible-group"><span class="group-label">交換器</span>
                     <div class="stock-summary-item" id="summary-2345" onclick="openForum('2345')"><span class="name">智邦 2345</span><span class="price">--</span></div>
                 </div>
+                <div class="summary-group collapsible-group"><span class="group-label">AI 伺服器 - 電源</span>
+                    <div class="stock-summary-item" id="summary-2308" onclick="openForum('2308')"><span class="name">台達電 2308</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2301" onclick="openForum('2301')"><span class="name">光寶科 2301</span><span class="price">--</span></div>
+                </div>
                 <div class="summary-group collapsible-group"><span class="group-label">光被動</span>
                     <div class="stock-summary-item" id="summary-3363" onclick="openForum('3363')"><span class="name">上詮 3363</span><span class="price">--</span></div>
                     <div class="stock-summary-item" id="summary-3163" onclick="openForum('3163')"><span class="name">波若威 3163</span><span class="price">--</span></div>
@@ -635,6 +646,31 @@
                 </div>
             </div>
 
+            <div id="label-maritime-related" class="row-label">航海王相關個股</div>
+            <!-- 航海王專屬：靜態個股資訊 -->
+            <div id="stock-summary-row" class="stock-summary-row is-collapsed">
+                <div class="summary-toggle" onclick="toggleSummary('stock-summary-row')">▽</div>
+                <div class="summary-group permanent-show">
+                    <span class="group-label">熱門航運</span>
+                    <div class="stock-summary-item" id="summary-2603" onclick="openForum('2603')"><span class="name">長榮 2603</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2606" onclick="openForum('2606')"><span class="name">裕民 2606</span><span class="price">--</span></div>
+                </div>
+                
+                <div class="summary-group collapsible-group">
+                    <span class="group-label">貨櫃</span>
+                    <div class="stock-summary-item" id="summary-2609" onclick="openForum('2609')"><span class="name">陽明 2609</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2615" onclick="openForum('2615')"><span class="name">萬海 2615</span><span class="price">--</span></div>
+                </div>
+                <div class="summary-group collapsible-group">
+                    <span class="group-label">散裝</span>
+                    <div class="stock-summary-item" id="summary-2637" onclick="openForum('2637')"><span class="name">慧洋 2637</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2605" onclick="openForum('2605')"><span class="name">新興 2605</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2641" onclick="openForum('2641')"><span class="name">正德 2641</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-5608" onclick="openForum('5608')"><span class="name">四維航 5608</span><span class="price">--</span></div>
+                </div>
+            </div>
+
+            <div id="label-row-2" class="row-label">航運、鐵礦石與能源</div>
             <div class="nav-row draggable-row" id="row-2"></div>
             <div class="row-label">綜合數據與自訂</div><div class="nav-row draggable-row" id="row-3"></div>
         </div>
@@ -755,8 +791,6 @@
 
         function renderAllRows() {
             const theme = localStorage.getItem('user_theme') || 'maritime';
-            const label2 = document.getElementById('label-row-2');
-            if (label2) label2.innerText = (theme === 'ai') ? 'AI 相關類股' : '航運、鐵礦石與能源';
 
             let saved = JSON.parse(localStorage.getItem('user_layout') || "{}");
             const custom = JSON.parse(localStorage.getItem('user_btns') || "[]");
