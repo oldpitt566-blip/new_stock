@@ -321,21 +321,28 @@
         }
         [data-theme="ai"] .stock-summary-item:hover { border-color: var(--accent); }
 
-        .stock-summary-item .name { font-weight: bold; color: var(--gold); font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+        .stock-summary-item .name { 
+            font-weight: bold; color: var(--gold); font-size: 0.95rem; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+            flex: 1 1 auto; min-width: 0; 
+        }
         [data-theme="ai"] .stock-summary-item .name { color: var(--accent); }
-        .stock-summary-item .price { font-family: monospace; font-size: 1.1rem; font-weight: 900; color: #fff; text-align: right; flex-grow: 1; display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
-        .stock-summary-item .change { font-size: 0.85rem; font-weight: bold; white-space: nowrap; }
+        .stock-summary-item .price { 
+            font-family: monospace; font-size: 1.1rem; font-weight: 900; color: #fff; 
+            text-align: right; flex: 0 0 auto; display: flex; align-items: center; 
+            justify-content: flex-end; gap: 5px; margin-left: 8px;
+        }
 
         @media (max-width: 768px) {
             .stock-summary-item { 
                 width: calc(50% - 4px); /* 手機版兩欄式 */
                 min-width: 0;
                 padding: 6px 8px;
-                gap: 4px;
+                gap: 2px;
             }
-            .stock-summary-item .name { font-size: 0.8rem; max-width: 42%; }
-            .stock-summary-item .price { font-size: 0.9rem; gap: 2px; }
-            .stock-summary-item .change { font-size: 0.75rem; }
+            .stock-summary-item .name { font-size: 0.82rem; }
+            .stock-summary-item .price { font-size: 0.95rem; gap: 2px; margin-left: 4px; }
+            .stock-summary-item .change { font-size: 0.78rem; }
         }
 
         @media (max-width: 400px) {
