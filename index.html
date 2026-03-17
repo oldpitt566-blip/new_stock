@@ -60,13 +60,13 @@
         #container.nav-hidden #nav { transform: translateY(-110%); }
 
         #nav-toggle {
-            position: fixed; right: 20px; top: 20px; z-index: 50000;
+            position: fixed; right: 20px; top: 20px; z-index: 99999;
             background: var(--primary); color: #fff; border: 2px solid rgba(255,255,255,0.5);
             padding: 8px 16px; border-radius: 6px; cursor: pointer;
             font-size: 1rem; font-weight: 900; box-shadow: 0 4px 20px rgba(0,0,0,0.8);
             transition: 0.3s; letter-spacing: 2px; touch-action: none;
         }
-        [data-theme="shiang"] #nav-toggle { background: #fff !important; color: #000 !important; border: 1px solid #000; }
+        [data-theme="shiang"] #nav-toggle { background: #2c3e50 !important; color: #fff !important; border: 2px solid #fff; }
 
         #content { position: absolute; top: 40px; left: 0; width: 100%; height: calc(100% - 40px); display: none; background: #000; z-index: 1; transition: all 0.4s ease; }
         #container.active #content { display: block; }
@@ -383,7 +383,6 @@
                 #dash-time { font-size: 1.6rem !important; } 
                 #dash-date { font-size: 0.9rem !important; }
 
-                #nav-toggle { padding: 6px 12px; font-size: 0.9rem; top: 10px; right: 10px; }
                 #welcome-text h1 { font-size: 1.5rem; margin-bottom: 5px; }
                 #welcome-text p { font-size: 0.8rem; }
                 #nav { padding: 60px 10px 40px; } 
@@ -842,6 +841,36 @@
         
         const nT = document.getElementById('nav-toggle'); 
         let isDragging = false, startX, startY, initX, initY;
+
+        function filterButtons() { 
+            const term = document.getElementById('search-input').value.toLowerCase().trim();
+            
+            // 1. 過濾普通按鈕容器 (nav-row 內的按鈕)
+            document.querySelectorAll('.btn-wrapper').forEach(el => {
+                const name = el.getAttribute('data-name') || el.innerText;
+                if (name) {
+                    el.style.display = name.toLowerCase().includes(term) ? '' : 'none';
+                }
+            });
+
+            // 2. 過濾各風格展示格 (stock-summary-item)
+            document.querySelectorAll('.stock-summary-item').forEach(el => {
+                const nameTag = el.querySelector('.name');
+                const nameText = nameTag ? nameTag.innerText : el.innerText;
+                if (nameText) {
+                    el.style.display = nameText.toLowerCase().includes(term) ? '' : 'none';
+                }
+            });
+
+            // 3. 特別處理：如果分組 (summary-group) 內的所有項目都隱藏了，則隱藏該分組
+            document.querySelectorAll('.summary-group').forEach(group => {
+                const items = group.querySelectorAll('.stock-summary-item');
+                if (items.length > 0) {
+                    const hasVisible = Array.from(items).some(item => item.style.display !== 'none');
+                    group.style.display = hasVisible ? '' : 'none';
+                }
+            });
+        }
 
         // 初始化按鈕位置
         function initNavPos() { 

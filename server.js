@@ -1,8 +1,8 @@
 const express = require('express');
-const axios = require('axios');
-const cheerio = require('cheerio');
 const cors = require('cors');
 const path = require('path');
+
+const { spawn } = require('child_process');
 
 const app = express();
 app.use(cors());
@@ -14,36 +14,27 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.get('/api/stock/:id', async (req, res) => {
+app.get('/api/stock/:id', (req, res) => {
     const stockId = req.params.id;
-    const fetchFromYahoo = async (suffix) => {
-        try {
-            const url = `https://tw.stock.yahoo.com/quote/${stockId}${suffix}`;
-            const { data } = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-            const $ = cheerio.load(data);
-            const price = $('.Fz\\(32px\\)').first().text();
-            const change = $('.Fz\\(20px\\)').first().text();
-            let trend = 'none';
-            if ($('.Fz\\(20px\\)').first().hasClass('C($c-trend-up)')) trend = 'up';
-            else if ($('.Fz\\(20px\\)').first().hasClass('C($c-trend-down)')) trend = 'down';
-            return { price, change, trend };
-        } catch (e) { return null; }
-    };
+    const pythonProcess = spawn('python', ['fetch_stock.py', stockId]);
+    
+    let data = '';
+    pythonProcess.stdout.on('data', (chunk) => {
+        data += chunk.toString();
+    });
 
-    try {
-        // 嘗試順序：.TW -> .TWO -> 無後綴 (美股)
-        let result = await fetchFromYahoo('.TW');
-        if (!result || !result.price || result.price === '-') result = await fetchFromYahoo('.TWO');
-        if (!result || !result.price || result.price === '-') result = await fetchFromYahoo('');
-        
-        if (result && result.price && result.price !== '-') {
-            res.json({ id: stockId, ...result });
-        } else {
-            res.status(404).json({ error: 'Not found' });
+    pythonProcess.on('close', (code) => {
+        try {
+            const result = JSON.parse(data);
+            if (result.error) {
+                res.status(404).json({ error: result.error });
+            } else {
+                res.json({ id: stockId, ...result });
+            }
+        } catch (e) {
+            res.status(500).json({ error: 'Failed to fetch stock data' });
         }
-    } catch (error) {
-        res.status(500).json({ error: 'Server error' });
-    }
+    });
 });
 
 app.listen(PORT, () => {
