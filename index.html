@@ -412,7 +412,6 @@
             --gold: #ffffff !important;
         }
         
-        [data-theme="shiang"] .stock-summary-item .name,
         [data-theme="shiang"] .shiang-hot-stocks span {
             color: #ffffff !important;
         }
@@ -777,8 +776,9 @@
                                 if (trend === 'up' && !displayChange.includes('+')) finalSign = '+';
 
                                 if (pEl) {
-                                    pEl.style.color = color;
-                                    pEl.innerHTML = `${data.price} <span class="change" style="color:${color}">(${finalSign}${displayChange})</span>`;
+                                    // 使用 setProperty 並加上 important，強制覆蓋所有 CSS 規則
+                                    pEl.style.setProperty('color', color, 'important');
+                                    pEl.innerHTML = `${data.price} <span class="change" style="color:${color} !important">(${finalSign}${displayChange})</span>`;
                                 }
                             });
                         });
