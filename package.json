@@ -1,16 +1,15 @@
 {
   "name": "stock-price-server",
   "version": "1.0.0",
-  "description": "Stock price scraper for Render",
+  "description": "Stock price server using yahoo-finance2",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "build": "npm install && pip3 install -r requirements.txt",
-    "postinstall": "echo 'Dependencies installation starting...'"
+    "start": "node server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "yahoo-finance2": "^2.11.3"
   },
   "engines": {
     "node": ">=18.0.0"

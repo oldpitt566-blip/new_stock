@@ -1,21 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-
-const { spawn, execSync } = require('child_process');
-
-function getPythonCmd() {
-    if (process.platform === 'win32') return 'python';
-    try {
-        execSync('python3 --version');
-        return 'python3';
-    } catch (e) {
-        return 'python';
-    }
-}
-
-const pythonCmd = getPythonCmd();
-console.log(`Using Python command: ${pythonCmd}`);
+const yahooFinance = require('yahoo-finance2').default;
 
 const app = express();
 app.use(cors());
@@ -23,67 +9,45 @@ app.use(express.static(path.join(__dirname)));
 
 const PORT = process.env.PORT || 3000;
 
+app.get('/health', (req, res) => res.send('Server is alive! Version: 3.0 (Node Native)'));
+
+app.get('/api/stock/:id', async (req, res) => {
+    const stockId = req.params.id;
+    const suffixes = stockId.match(/^[0-9]{4,5}$/) ? ['.TW', '.TWO', ''] : [''];
+    
+    let result = null;
+    for (const suffix of suffixes) {
+        try {
+            const quote = await yahooFinance.quote(stockId + suffix);
+            if (quote && quote.regularMarketPrice) {
+                const price = quote.regularMarketPrice;
+                const change = quote.regularMarketChange || 0;
+                const changePct = quote.regularMarketChangePercent || 0;
+                const trend = change > 0 ? 'up' : (change < 0 ? 'down' : 'none');
+                
+                result = {
+                    id: stockId,
+                    price: price.toFixed(2),
+                    change: `${change.toFixed(2)} (${changePct.toFixed(2)}%)`,
+                    trend: trend,
+                    symbol: stockId + suffix
+                };
+                break;
+            }
+        } catch (e) { continue; }
+    }
+
+    if (result) {
+        res.json(result);
+    } else {
+        res.status(404).json({ error: 'Stock not found' });
+    }
+});
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.get('/api/debug/:id', (req, res) => {
-    const stockId = req.params.id;
-    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-    const pythonProcess = spawn(pythonCmd, ['fetch_stock.py', stockId]);
-    
-    let stdout = '';
-    let stderr = '';
-
-    pythonProcess.stdout.on('data', (data) => stdout += data.toString());
-    pythonProcess.stderr.on('data', (data) => stderr += data.toString());
-
-    pythonProcess.on('close', (code) => {
-        res.json({
-            code,
-            stdout: stdout.trim(),
-            stderr: stderr.trim(),
-            platform: process.platform,
-            node_version: process.version
-        });
-    });
-});
-
-app.get('/api/stock/:id', (req, res) => {
-    const stockId = req.params.id;
-    // 在 Linux/Render 上通常是 python3，但在 Windows 上是 python
-    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-    const pythonProcess = spawn(pythonCmd, ['fetch_stock.py', stockId]);
-    
-    let data = '';
-    let errorData = '';
-
-    pythonProcess.stdout.on('data', (chunk) => {
-        data += chunk.toString();
-    });
-
-    pythonProcess.stderr.on('data', (chunk) => {
-        errorData += chunk.toString();
-    });
-
-    pythonProcess.on('close', (code) => {
-        if (code !== 0) {
-            console.error(`Python Error (Code ${code}):`, errorData);
-            return res.status(500).json({ error: 'Python process failed', details: errorData });
-        }
-        try {
-            const result = JSON.parse(data);
-            if (result.error) {
-                res.status(404).json({ error: result.error });
-            } else {
-                res.json({ id: stockId, ...result });
-            }
-        } catch (e) {
-            res.status(500).json({ error: 'Failed to parse stock data' });
-        }
-    });
-});
-
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server v3.0 running on port ${PORT}`);
 });
