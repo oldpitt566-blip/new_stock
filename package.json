@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "postinstall": "pip install -r requirements.txt || pip3 install -r requirements.txt"
+    "postinstall": "echo 'Checking Pip...'; pip --version || pip3 --version; echo 'Installing Requirements...'; pip install -r requirements.txt || pip3 install -r requirements.txt || echo 'Pip failed! Check Build Logs.'"
   },
   "dependencies": {
     "cors": "^2.8.5",
