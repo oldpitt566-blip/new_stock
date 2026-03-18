@@ -751,7 +751,7 @@
                     if (!res.ok) continue;
                     const data = await res.json();
 
-                    if (data && data.price) {
+                    if (data && data.price !== undefined) {
                         // 更新邏輯：尋找所有可能存在的格子 (支援重複 ID)
                         const targetIds = [`summary-${id}`, `summary-s-${id}`];
                         
@@ -768,7 +768,7 @@
                                     if (nEl) nEl.style.color = '#ffffff';
                                 }
 
-                                let displayChange = data.change || "";
+                                let displayChange = String(data.change || "");
                                 if (displayChange.includes(' ')) displayChange = displayChange.split(' ')[0];
                                 
                                 let finalSign = '';
@@ -781,19 +781,29 @@
                             });
                         });
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.error("Fetch error for " + id, e);
+                }
             }
         }
         setInterval(fetchStockPrices, 30000);
         setTimeout(fetchStockPrices, 2000);
 
         function updateClock() { 
-            const n = new Date(); const timeStr = n.getHours().toString().padStart(2, '0') + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0');
-            const clockEl = document.getElementById('clock'), dashTime = document.getElementById('dash-time'), dashDate = document.getElementById('dash-date');
-            if (clockEl) clockEl.innerText = timeStr; if (dashTime) dashTime.innerText = timeStr;
-            if (dashDate) { const y = n.getFullYear(), mo = (n.getMonth() + 1).toString().padStart(2, '0'), d = n.getDate().toString().padStart(2, '0'), days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']; dashDate.innerText = `${y}/${mo}/${d} ${days[n.getDay()]}`; }
+            try {
+                const n = new Date(); 
+                const timeStr = n.getHours().toString().padStart(2, '0') + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0');
+                const clockEl = document.getElementById('clock'), dashTime = document.getElementById('dash-time'), dashDate = document.getElementById('dash-date');
+                if (clockEl) clockEl.innerText = timeStr; 
+                if (dashTime) dashTime.innerText = timeStr;
+                if (dashDate) { 
+                    const y = n.getFullYear(), mo = (n.getMonth() + 1).toString().padStart(2, '0'), d = n.getDate().toString().padStart(2, '0'), days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']; 
+                    dashDate.innerText = `${y}/${mo}/${d} ${days[n.getDay()]}`; 
+                }
+            } catch (e) { console.error("Clock error", e); }
         }
-        setInterval(updateClock, 1000); updateClock();
+        setInterval(updateClock, 1000); 
+        updateClock();
 
         function renderAllRows() {
             const theme = localStorage.getItem('user_theme') || 'maritime';
