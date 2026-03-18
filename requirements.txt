@@ -1,1 +1,5 @@
 yfinance
+pandas
+lxml
+lxml_html_clean
+requests
