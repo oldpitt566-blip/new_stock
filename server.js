@@ -19,15 +19,14 @@ const HEADERS = {
     'Accept-Language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7'
 };
 
-app.get('/health', (req, res) => res.send('Server v3.5 (Google + Yahoo Web) is Live'));
+app.get('/health', (req, res) => res.send('Server v3.6 (Google Finance Optimized) is Live'));
 
-// --- 核心引擎：Google Finance (極速且穩定) ---
+// --- 強化版 Google Finance 解析 ---
 async function fetchFromGoogle(stockId) {
     try {
-        // 判斷台股或是美股 (台股補上 :TPE 或 :TWO)
         let query = stockId;
         if (stockId.match(/^[0-9]+$/)) {
-            // 先試上市 TPE，不行再試上櫃 TWO (Google Finance 格式)
+            // 嘗試上市 (TPE)，若失敗後續會走備援
             query = `${stockId}:TPE`;
         }
 
@@ -35,42 +34,56 @@ async function fetchFromGoogle(stockId) {
         const { data } = await axios.get(url, { headers: HEADERS, timeout: 5000 });
         const $ = cheerio.load(data);
 
-        const price = $('.YMlS1d .YMlS1d').first().text() || $('.fxKbKc').first().text();
-        const changeStr = $('.Jw7X6b').first().text(); // 包含漲跌點數與百分比
-        
-        if (price) {
-            const isUp = $('.Jw7X6b').first().hasClass('P23S3b') || changeStr.includes('+');
-            const isDown = $('.Jw7X6b').first().hasClass('pY6Snc') || changeStr.includes('-');
+        // 1. 抓取現價
+        const price = $('.fxKbKc').first().text();
+        if (!price) return null;
 
-            return {
-                price: price.replace(/[^0-9.]/g, ''),
-                change: changeStr,
-                trend: isUp ? 'up' : (isDown ? 'down' : 'none'),
-                symbol: query,
-                source: 'Google'
-            };
-        }
+        // 2. 抓取漲跌區域
+        // Google Finance 的漲跌通常在 [aria-label] 中有詳細文字，或是在特定的 div
+        const changeEl = $('.Jw7X6b').first();
+        let changeStr = changeEl.text(); // 例如 "+31.00 (1.69%)"
+        
+        // 判斷漲跌趨勢
+        let trend = 'none';
+        if (changeEl.hasClass('P23S3b') || changeStr.includes('+')) trend = 'up';
+        else if (changeEl.hasClass('pY6Snc') || changeStr.includes('-')) trend = 'down';
+
+        // 整理 change 格式：確保它只包含 "漲跌 (百分比)"
+        // 有時 Google 會抓到 "今日漲跌" 之類的雜字，我們過濾一下
+        const cleanChange = changeStr.match(/[+-]?[0-9,.]+\s*\([^)]+\)/);
+        const finalChange = cleanChange ? cleanChange[0] : changeStr;
+
+        return {
+            price: price.replace(/[^0-9.]/g, ''),
+            change: finalChange,
+            trend: trend,
+            symbol: query,
+            source: 'Google'
+        };
     } catch (e) {}
     return null;
 }
 
-// --- 備援引擎：Yahoo 台灣網頁版 (含 Referer 偽裝) ---
+// --- 備援引擎：Yahoo 台灣網頁版 (上櫃公司專用) ---
 async function fetchFromYahooWeb(stockId) {
     try {
-        const url = `https://tw.stock.yahoo.com/quote/${stockId}.TW`;
-        const { data } = await axios.get(url, { 
-            headers: { ...HEADERS, 'Referer': 'https://tw.stock.yahoo.com/' },
-            timeout: 5000 
-        });
-        const $ = cheerio.load(data);
-        const price = $('.Fz\\(32px\\)').first().text();
-        const change = $('.Fz\\(20px\\)').first().text();
-        let trend = 'none';
-        if ($('.Fz\\(20px\\)').first().hasClass('C($c-trend-up)')) trend = 'up';
-        else if ($('.Fz\\(20px\\)').first().hasClass('C($c-trend-down)')) trend = 'down';
+        // 同時嘗試 .TW 和 .TWO
+        for (const suffix of ['.TW', '.TWO']) {
+            const url = `https://tw.stock.yahoo.com/quote/${stockId}${suffix}`;
+            const { data } = await axios.get(url, { 
+                headers: { ...HEADERS, 'Referer': 'https://tw.stock.yahoo.com/' },
+                timeout: 5000 
+            });
+            const $ = cheerio.load(data);
+            const price = $('.Fz\\(32px\\)').first().text();
+            if (!price || price === '-') continue;
 
-        if (price && price !== '-') {
-            return { price, change, trend, symbol: stockId, source: 'YahooWeb' };
+            const change = $('.Fz\\(20px\\)').first().text();
+            let trend = 'none';
+            if ($('.Fz\\(20px\\)').first().hasClass('C($c-trend-up)')) trend = 'up';
+            else if ($('.Fz\\(20px\\)').first().hasClass('C($c-trend-down)')) trend = 'down';
+
+            return { price, change, trend, symbol: stockId + suffix, source: 'YahooWeb' };
         }
     } catch (e) {}
     return null;
@@ -78,11 +91,9 @@ async function fetchFromYahooWeb(stockId) {
 
 app.get('/api/stock/:id', async (req, res) => {
     const stockId = req.params.id;
-    
-    // 1. 優先使用 Google Finance (最穩)
     let result = await fetchFromGoogle(stockId);
     
-    // 2. 如果 Google 沒抓到台股，嘗試 Yahoo 網頁版
+    // 如果 Google 沒抓到，或是台股（Google 有時對上櫃支援較慢），嘗試 Yahoo
     if (!result && stockId.match(/^[0-9]+$/)) {
         result = await fetchFromYahooWeb(stockId);
     }
@@ -99,5 +110,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server v3.5 running on port ${PORT}`);
+    console.log(`Server v3.6 running on port ${PORT}`);
 });
