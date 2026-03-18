@@ -207,7 +207,7 @@
         .shiang-summary-row { display: none !important; } 
 
         [data-theme="ai"] .ai-summary-row { display: flex !important; }
-        [data-theme="shiang"] .shiang-summary-row { display: flex !important; } 
+        [data-theme="shiang"] .shiang-summary-row { display: block !important; background: transparent !important; border: none !important; padding: 0 !important; }
         [data-theme="shiang"] .ai-summary-row { display: none !important; }
 
         /* 標題顯示修正：祥老師與航海王都顯示 Row 2 標題，只有 AI 王隱藏 */
@@ -348,20 +348,20 @@
 
         @media (max-width: 768px) {
             .stock-summary-item { 
-                width: calc(50% - 4px); /* 手機版兩欄式 */
+                width: 100% !important; /* 強制個股單行 */
                 min-width: 0;
-                padding: 6px 8px;
-                gap: 2px;
+                padding: 10px 15px;
+                gap: 5px;
             }
-            .stock-summary-item .name { font-size: 0.82rem; }
-            .stock-summary-item .price { font-size: 0.95rem; gap: 2px; margin-left: 4px; }
-            .stock-summary-item .change { font-size: 0.78rem; }
+            .stock-summary-item .name { font-size: 1.1rem; }
+            .stock-summary-item .price { font-size: 1.2rem; gap: 5px; margin-left: 8px; }
+            .stock-summary-item .change { font-size: 1rem; }
         }
 
         @media (max-width: 400px) {
-            .stock-summary-item .name { font-size: 0.7rem; }
-            .stock-summary-item .price { font-size: 0.8rem; }
-            .stock-summary-item .change { font-size: 0.65rem; }
+            .stock-summary-item .name { font-size: 0.9rem; }
+            .stock-summary-item .price { font-size: 1rem; }
+            .stock-summary-item .change { font-size: 0.8rem; }
         }
         
         .btn-wrapper { position: relative; width: 100%; }
@@ -369,6 +369,17 @@
         body.manage-mode .del-badge { display: flex; }
         @keyframes shake { 0% { transform: rotate(0deg) } 25% { transform: rotate(1deg) } 75% { transform: rotate(-1deg) } 100% { transform: rotate(0deg) } }
         body.manage-mode .btn-wrapper:not(.dragging) .btn { animation: shake 0.3s infinite; pointer-events: none; }
+        
+        /* 自選股管理樣式 */
+        .stock-item-wrapper { position: relative; width: 100%; }
+        .stock-del-badge { 
+            position: absolute; top: -8px; right: -8px; background: #e60012; color: #000; 
+            width: 24px; height: 24px; border-radius: 50%; display: none; 
+            align-items: center; justify-content: center; font-size: 18px; 
+            font-weight: 900; cursor: pointer; border: 2px solid #fff; z-index: 100; 
+        }
+        body.shiang-stock-manage .stock-del-badge { display: flex; }
+
         [data-theme="shiang"] .del-badge { color: #000 !important; }
 
         /* 手機強制鎖定直向 CSS 修正 */
@@ -488,10 +499,23 @@
             <div class="nav-row draggable-row" id="row-1"></div>
 
             <div id="label-related-stocks" class="row-label">相關個股</div>
-            <!-- 祥老師風格專屬：熱門股區域 -->
             
-            <!-- 1. 權值股 (固定顯示) -->
-            <div class="shiang-hot-stocks">
+            <!-- 第一排按鈕 -->
+            <div class="shiang-tab-row" style="margin-bottom: 5px;">
+                <button class="shiang-tab-btn" onclick="toggleShiangTab('shiang-weight-content', this)">權值股 ▽</button>
+                <button class="shiang-tab-btn" onclick="toggleShiangTab('shiang-custom-content', this)">自選 ▽</button>
+            </div>
+
+            <!-- 第二排按鈕 -->
+            <div class="shiang-tab-row">
+                <button class="shiang-tab-btn" onclick="toggleShiangTab('shiang-ai-content', this)">黃老闆 ▽</button>
+                <button class="shiang-tab-btn" onclick="toggleShiangTab('shiang-memory-content', this)">記憶體 ▽</button>
+                <button class="shiang-tab-btn" onclick="toggleShiangTab('shiang-maritime-content', this)">航運 ▽</button>
+                <button class="shiang-tab-btn" onclick="toggleShiangTab('shiang-steel-content', this)">鋼鐵 ▽</button>
+            </div>
+
+            <!-- 內容區域 -->
+            <div id="shiang-weight-content" class="shiang-hot-stocks is-collapsed">
                 <div class="summary-group">
                     <span class="group-label">權值股</span>
                     <div class="stock-summary-item" id="summary-s-2330" onclick="openForum('2330')"><span class="name">台積電 2330</span><span class="price">--</span></div>
@@ -501,15 +525,21 @@
                 </div>
             </div>
 
-            <!-- 標籤按鈕列 -->
-            <div class="shiang-tab-row">
-                <button class="shiang-tab-btn" onclick="toggleShiangTab('shiang-ai-content', this)">黃老闆 ▽</button>
-                <button class="shiang-tab-btn" onclick="toggleShiangTab('shiang-memory-content', this)">記憶體 ▽</button>
-                <button class="shiang-tab-btn" onclick="toggleShiangTab('shiang-maritime-content', this)">航運 ▽</button>
-                <button class="shiang-tab-btn" onclick="toggleShiangTab('shiang-steel-content', this)">鋼鐵 ▽</button>
+            <div id="shiang-custom-content" class="shiang-hot-stocks is-collapsed">
+                <div class="summary-group">
+                    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; width: 100%; border-bottom: 1px solid #555; margin-bottom: 10px; padding-bottom: 5px; gap: 5px;">
+                        <span class="group-label" style="border:none; margin:0; padding:0; width: auto; flex: 1; min-width: 100px;">自選股報價</span>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="shiang-tab-btn" style="padding: 4px 12px; min-height: 34px; font-size: 0.9rem; flex: none; width: auto; box-shadow: none;" onclick="addShiangStock()">新增</button>
+                            <button id="shiang-stock-manage-btn" class="shiang-tab-btn" style="padding: 4px 12px; min-height: 34px; font-size: 0.9rem; flex: none; width: auto; box-shadow: none;" onclick="toggleShiangStockManage()">管理</button>
+                        </div>
+                    </div>
+                    <div id="shiang-custom-stock-list" style="display: flex; flex-wrap: wrap; gap: 8px; width: 100%;">
+                        <!-- 這裡會動態顯示自選股報價項目 -->
+                    </div>
+                </div>
             </div>
 
-            <!-- 內容區域 (預設全部隱藏) -->
             <div id="shiang-ai-content" class="shiang-hot-stocks is-collapsed">
                 <div class="summary-group"><span class="group-label">AI伺服器 - 散熱</span>
                     <div class="stock-summary-item" id="summary-s-3017" onclick="openForum('3017')"><span class="name">奇鋐 3017</span><span class="price">--</span></div>
@@ -721,93 +751,80 @@
         }
 
         function toggleShiangTab(tabId, btn) {
-            const tabs = ['shiang-ai-content', 'shiang-memory-content', 'shiang-maritime-content', 'shiang-steel-content'];
+            const tabs = ['shiang-weight-content', 'shiang-custom-content', 'shiang-ai-content', 'shiang-memory-content', 'shiang-maritime-content', 'shiang-steel-content'];
             const targetEl = document.getElementById(tabId);
             const isOpening = targetEl.classList.contains('is-collapsed');
-
-            // 關閉所有分區
-            tabs.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.classList.add('is-collapsed');
-            });
-
-            // 重置所有按鈕狀態
-            document.querySelectorAll('.shiang-tab-btn').forEach(b => {
-                b.classList.remove('active');
-                b.innerText = b.innerText.replace('△', '▽');
-            });
-
-            // 如果點擊的是原本縮起的，則展開
-            if (isOpening) {
-                targetEl.classList.remove('is-collapsed');
-                btn.classList.add('active');
-                btn.innerText = btn.innerText.replace('▽', '△');
-            }
+            tabs.forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('is-collapsed'); });
+            document.querySelectorAll('.shiang-tab-btn').forEach(b => { b.classList.remove('active'); b.innerText = b.innerText.replace('△', '▽'); });
+            if (isOpening) { targetEl.classList.remove('is-collapsed'); btn.classList.add('active'); btn.innerText = btn.innerText.replace('▽', '△'); }
         }
 
-        function openForum(id) {
-            const url = `https://www.cmoney.tw/forum/stock/${id}`;
-            window.open(url, '_blank');
-        }
+        function openForum(id) { window.open(`https://www.cmoney.tw/forum/stock/${id}`, '_blank'); }
 
         async function fetchStockPrices() {
-            // 所有需要抓取的股票代號 (台股+美股)
-            const stocks = ["2603", "2609", "2615", "2637", "2606", "2605", "2641", "5608", 
-                            "2330", "2454", "3017", "3324", "6805", "2421", "8210", "6117", "2059", "6417",
-                            "2383", "2368", "3037", "8046", "2317", "2382", "3231", "6669", "2376",
-                            "3711", "2449", "4979", "4977", "2345", "3363", "3163", "6442",
-                            "2408", "2344", "MU", "6770", "8299", "SIMO", "2379", "5289", "3260", "4967",
-                            "2308", "2301", "2610", "2618", "2002", "2211"];
-
+            const baseStocks = ["2603", "2609", "2615", "2637", "2606", "2605", "2641", "5608", "2330", "2454", "3017", "3324", "6805", "2421", "8210", "6117", "2059", "6417", "2383", "2368", "3037", "8046", "2317", "2382", "3231", "6669", "2376", "3711", "2449", "4979", "4977", "2345", "3363", "3163", "6442", "2408", "2344", "MU", "6770", "8299", "SIMO", "2379", "5289", "3260", "4967", "2308", "2301", "2610", "2618", "2002", "2211"];
+            const customStocks = JSON.parse(localStorage.getItem('shiang_custom_stocks') || "[]");
+            const stocks = [...new Set([...baseStocks, ...customStocks])];
             for (const id of stocks) {
                 try {
                     const res = await fetch(`${RENDER_SERVER_URL}/api/stock/${id}`);
                     if (!res.ok) continue;
                     const data = await res.json();
-
                     if (data && data.price !== undefined) {
-                        // 更新邏輯：尋找所有可能存在的格子 (支援重複 ID)
                         const targetIds = [`summary-${id}`, `summary-s-${id}`];
-                        
                         targetIds.forEach(targetId => {
-                            const containers = document.querySelectorAll(`[id="${targetId}"]`);
-                            containers.forEach(container => {
-                                const pEl = container.querySelector('.price');
-                                const nEl = container.querySelector('.name'); // 取得名稱標籤
-                                const trend = data.trend;
-                                
-                                // 動態獲取當前風格的漲跌顏色
+                            document.querySelectorAll(`[id="${targetId}"]`).forEach(container => {
+                                const pEl = container.querySelector('.price'), nEl = container.querySelector('.name'), trend = data.trend;
                                 const style = getComputedStyle(document.body);
-                                const upColor = style.getPropertyValue('--bearish').trim() || '#FF3B30'; // 台股習慣紅漲
-                                const downColor = style.getPropertyValue('--bullish').trim() || '#00FF00'; // 台股習慣綠跌
+                                const upColor = style.getPropertyValue('--bearish').trim() || '#FF3B30', downColor = style.getPropertyValue('--bullish').trim() || '#00FF00';
                                 const color = trend === 'up' ? upColor : (trend === 'down' ? downColor : '#ccc');
-                                
-                                // 修正：祥老師風格下名稱強制為白色
-                                if (document.body.getAttribute('data-theme') === 'shiang') {
-                                    if (nEl) nEl.style.color = '#ffffff';
-                                }
-
-                                let displayChange = String(data.change || "");
-                                if (displayChange.includes(' ')) displayChange = displayChange.split(' ')[0];
-                                
-                                let finalSign = '';
-                                if (trend === 'up' && !displayChange.includes('+')) finalSign = '+';
-
-                                if (pEl) {
-                                    // 使用 setProperty 並加上 important，強制覆蓋所有 CSS 規則
-                                    pEl.style.setProperty('color', color, 'important');
-                                    pEl.innerHTML = `${data.price} <span class="change" style="color:${color} !important">(${finalSign}${displayChange})</span>`;
-                                }
+                                if (document.body.getAttribute('data-theme') === 'shiang' && nEl) nEl.style.color = '#ffffff';
+                                let displayChange = String(data.change || ""); if (displayChange.includes(' ')) displayChange = displayChange.split(' ')[0];
+                                let finalSign = (trend === 'up' && !displayChange.includes('+')) ? '+' : '';
+                                if (pEl) { pEl.style.setProperty('color', color, 'important'); pEl.innerHTML = `${data.price} <span class="change" style="color:${color} !important">(${finalSign}${displayChange})</span>`; }
                             });
                         });
                     }
-                } catch (e) {
-                    console.error("Fetch error for " + id, e);
-                }
+                } catch (e) {}
             }
         }
         setInterval(fetchStockPrices, 30000);
         setTimeout(fetchStockPrices, 2000);
+
+        function addShiangStock() {
+            const code = prompt("請輸入股票代碼:");
+            if (code && code.trim()) {
+                const upperCode = code.trim().toUpperCase();
+                let stocks = JSON.parse(localStorage.getItem('shiang_custom_stocks') || "[]");
+                if (!stocks.includes(upperCode)) { stocks.push(upperCode); localStorage.setItem('shiang_custom_stocks', JSON.stringify(stocks)); renderShiangCustomStocks(); fetchStockPrices(); }
+            }
+        }
+
+        function toggleShiangStockManage() {
+            const isManaging = document.body.classList.toggle('shiang-stock-manage');
+            const btn = document.getElementById('shiang-stock-manage-btn');
+            if (btn) btn.innerText = isManaging ? '完成' : '管理';
+        }
+
+        function removeShiangStock(code) {
+            let stocks = JSON.parse(localStorage.getItem('shiang_custom_stocks') || "[]");
+            stocks = stocks.filter(s => s !== code);
+            localStorage.setItem('shiang_custom_stocks', JSON.stringify(stocks));
+            renderShiangCustomStocks();
+        }
+
+        function renderShiangCustomStocks() {
+            const listEl = document.getElementById('shiang-custom-stock-list'); if (!listEl) return;
+            listEl.innerHTML = '';
+            const stocks = JSON.parse(localStorage.getItem('shiang_custom_stocks') || "[]");
+            stocks.forEach(code => {
+                const wrapper = document.createElement('div'); wrapper.className = 'stock-item-wrapper';
+                const badge = document.createElement('div'); badge.className = 'stock-del-badge'; badge.innerText = '×'; badge.onclick = (e) => { e.stopPropagation(); removeShiangStock(code); };
+                const item = document.createElement('div'); item.className = 'stock-summary-item'; item.id = `summary-s-${code}`; item.style.width = '100%'; item.onclick = () => openForum(code);
+                item.innerHTML = `<span class="name">${code}</span><span class="price">--</span>`;
+                wrapper.appendChild(badge); wrapper.appendChild(item); listEl.appendChild(wrapper);
+            });
+        }
 
         function updateClock() { 
             try {
@@ -820,45 +837,31 @@
                     const y = n.getFullYear(), mo = (n.getMonth() + 1).toString().padStart(2, '0'), d = n.getDate().toString().padStart(2, '0'), days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']; 
                     dashDate.innerText = `${y}/${mo}/${d} ${days[n.getDay()]}`; 
                 }
-            } catch (e) { console.error("Clock error", e); }
+            } catch (e) {}
         }
         setInterval(updateClock, 1000); 
         updateClock();
 
         function renderAllRows() {
             const theme = localStorage.getItem('user_theme') || 'maritime';
-
             let saved = JSON.parse(localStorage.getItem('user_layout') || "{}");
             const custom = JSON.parse(localStorage.getItem('user_btns') || "[]");
-            
+            if (theme === 'shiang') renderShiangCustomStocks();
             ["row-1", "row-2", "row-3"].forEach(rId => {
                 const row = document.getElementById(rId); if(!row) return; row.innerHTML = '';
                 let data = (saved && saved[rId]) ? saved[rId] : [...defaultBtns[rId]];
-                
                 if (theme === 'ai' && rId === "row-2") data = []; 
                 if (theme === 'ai' && rId === "row-3") data = [...defaultBtns["row-2"], ...data];
                 if (rId === "row-3") custom.forEach(cb => { if (!data.find(db => db.name === cb.name)) data.push(cb) });
-                
                 data.forEach(b => {
-                    const w = document.createElement('div'); w.className = 'btn-wrapper';
-                    // 儲存原始資料供排序後重建 layout 使用
-                    w.setAttribute('data-url', b.url);
-                    if (b.isExt) w.setAttribute('data-isext', 'true');
-
+                    const w = document.createElement('div'); w.className = 'btn-wrapper'; w.setAttribute('data-url', b.url); if (b.isExt) w.setAttribute('data-isext', 'true');
                     const isDefault = ["row-1", "row-2", "row-3"].some(r => defaultBtns[r].some(db => db.name === b.name));
                     if (!isDefault) w.setAttribute('data-custom', 'true');
-
                     const btn = document.createElement('button'); btn.className = 'btn'; btn.innerText = b.name + (b.isExt ? " ↗" : "");
                     btn.onclick = () => b.isExt ? window.open(b.url, '_blank') : loadPage(btn, b.url);
                     w.appendChild(btn); row.appendChild(w);
                 });
-
-                // 初始化拖曳功能
-                new Sortable(row, {
-                    animation: 150,
-                    ghostClass: 'dragging',
-                    onEnd: saveCurrentLayout
-                });
+                new Sortable(row, { animation: 150, ghostClass: 'dragging', onEnd: saveCurrentLayout });
             });
         }
 
@@ -868,11 +871,7 @@
                 const row = document.getElementById(rId);
                 layout[rId] = Array.from(row.querySelectorAll('.btn-wrapper')).map(w => {
                     const btn = w.querySelector('.btn');
-                    return {
-                        name: btn.innerText.replace(' ↗', ''),
-                        url: w.getAttribute('data-url'),
-                        isExt: w.getAttribute('data-isext') === 'true'
-                    };
+                    return { name: btn.innerText.replace(' ↗', ''), url: w.getAttribute('data-url'), isExt: w.getAttribute('data-isext') === 'true' };
                 });
             });
             localStorage.setItem('user_layout', JSON.stringify(layout));
@@ -883,32 +882,19 @@
             const url = prompt("請輸入 URL (包含 http:// 或 https://):");
             if (name && url) {
                 const custom = JSON.parse(localStorage.getItem('user_btns') || "[]");
-                custom.push({ name, url, isExt: true });
-                localStorage.setItem('user_btns', JSON.stringify(custom));
-                renderAllRows();
+                custom.push({ name, url, isExt: true }); localStorage.setItem('user_btns', JSON.stringify(custom)); renderAllRows();
             }
         }
 
         function toggleManageMode() {
             isManageMode = !isManageMode;
             document.body.classList.toggle('manage-mode', isManageMode);
-            const btn = document.getElementById('manage-btn');
-            if (btn) btn.innerText = isManageMode ? '完成' : '管理';
-            
-            if (!isManageMode) {
-                renderAllRows();
-            } else {
-                // 僅在標記為 data-custom="true" 的按鈕上顯示刪除標誌
+            const btn = document.getElementById('manage-btn'); if (btn) btn.innerText = isManageMode ? '完成' : '管理';
+            if (!isManageMode) renderAllRows();
+            else {
                 document.querySelectorAll('.btn-wrapper[data-custom="true"]').forEach((w) => {
                     if (!w.querySelector('.del-badge')) {
-                        const badge = document.createElement('div');
-                        badge.className = 'del-badge';
-                        badge.innerHTML = '×';
-                        badge.onclick = (e) => {
-                            e.stopPropagation();
-                            deleteBtn(w);
-                        };
-                        w.appendChild(badge);
+                        const badge = document.createElement('div'); badge.className = 'del-badge'; badge.innerHTML = '×'; badge.onclick = (e) => { e.stopPropagation(); deleteBtn(w); }; w.appendChild(badge);
                     }
                 });
             }
@@ -916,66 +902,23 @@
 
         function deleteBtn(wrapper) {
             const name = wrapper.querySelector('.btn').innerText.replace(' ↗', '');
-            
-            // 1. 從 user_btns 自定義清單中移除
             const custom = JSON.parse(localStorage.getItem('user_btns') || "[]");
             localStorage.setItem('user_btns', JSON.stringify(custom.filter(b => b.name !== name)));
-            
-            // 2. 從 user_layout 排序配置中移除
             let saved = JSON.parse(localStorage.getItem('user_layout') || "{}");
-            for (let rId in saved) {
-                if (Array.isArray(saved[rId])) {
-                    saved[rId] = saved[rId].filter(b => b.name !== name);
-                }
-            }
+            for (let rId in saved) { if (Array.isArray(saved[rId])) saved[rId] = saved[rId].filter(b => b.name !== name); }
             localStorage.setItem('user_layout', JSON.stringify(saved));
-            
-            // 3. 重新渲染
             renderAllRows();
-            
-            // 4. 如果目前還在管理模式，重新顯示所有 X 徽章
-            if (isManageMode) {
-                isManageMode = false; // 先重置狀態，讓 toggleManageMode 重新執行啟動邏輯
-                toggleManageMode();
-            }
+            if (isManageMode) { isManageMode = false; toggleManageMode(); }
         }
 
-        // 螢幕恆亮控制
-        async function requestWakeLock() {
-            try {
-                if ('wakeLock' in navigator && wakeLock === null) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
-            } catch (err) {}
-        }
-
-        function releaseWakeLock() {
-            if (wakeLock !== null) {
-                wakeLock.release().then(() => { wakeLock = null; });
-            }
-        }
-
-        document.addEventListener('visibilitychange', async () => {
-            if (document.visibilityState === 'visible' && globalContainer.classList.contains('show-dashboard')) {
-                await requestWakeLock();
-            }
-        });
+        async function requestWakeLock() { try { if ('wakeLock' in navigator && wakeLock === null) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} }
+        function releaseWakeLock() { if (wakeLock !== null) wakeLock.release().then(() => { wakeLock = null; }); }
+        document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && globalContainer.classList.contains('show-dashboard')) await requestWakeLock(); });
 
         function setTheme(t) { localStorage.setItem('user_theme', t); if(t==='maritime') document.body.removeAttribute('data-theme'); else document.body.setAttribute('data-theme', t); document.getElementById('style-dropdown').classList.remove('show'); renderAllRows(); }
         function initTheme() { setTheme(localStorage.getItem('user_theme') || 'maritime'); }
-        function goHome() { 
-            releaseWakeLock();
-            globalContainer.classList.add('nav-hidden'); 
-            globalContainer.classList.remove('active', 'show-dashboard', 'hide-ticker'); 
-            globalContent.innerHTML = ''; 
-        }
-        function showDashboard() { 
-            requestWakeLock();
-            globalContainer.classList.remove('active'); 
-            globalContainer.classList.add('show-dashboard', 'nav-hidden', 'hide-ticker'); 
-            updateToggleText(); 
-            updateWidgets(); 
-        }
+        function goHome() { releaseWakeLock(); globalContainer.classList.add('nav-hidden'); globalContainer.classList.remove('active', 'show-dashboard', 'hide-ticker'); globalContent.innerHTML = ''; }
+        function showDashboard() { requestWakeLock(); globalContainer.classList.remove('active'); globalContainer.classList.add('show-dashboard', 'nav-hidden', 'hide-ticker'); updateToggleText(); updateWidgets(); }
 
         function updateWidgets() {
             const symbols = { 'w-tsm':'TSM', 'w-dji':'DJI', 'w-spx':'SPX500', 'w-ixic':'NSXUSD', 'vix':'VIX', 'btc':'BTCUSD', 'oil':'UKOIL', 'gold':'GOLD', 'twd':'USDTWD' };
@@ -990,97 +933,22 @@
         
         const nT = document.getElementById('nav-toggle'); 
         let isDragging = false, startX, startY, initX, initY;
-
         function filterButtons() { 
             const term = document.getElementById('search-input').value.toLowerCase().trim();
-            
-            // 1. 過濾普通按鈕容器 (nav-row 內的按鈕)
-            document.querySelectorAll('.btn-wrapper').forEach(el => {
-                const name = el.getAttribute('data-name') || el.innerText;
-                if (name) {
-                    el.style.display = name.toLowerCase().includes(term) ? '' : 'none';
-                }
-            });
-
-            // 2. 過濾各風格展示格 (stock-summary-item)
-            document.querySelectorAll('.stock-summary-item').forEach(el => {
-                const nameTag = el.querySelector('.name');
-                const nameText = nameTag ? nameTag.innerText : el.innerText;
-                if (nameText) {
-                    el.style.display = nameText.toLowerCase().includes(term) ? '' : 'none';
-                }
-            });
-
-            // 3. 特別處理：如果分組 (summary-group) 內的所有項目都隱藏了，則隱藏該分組
-            document.querySelectorAll('.summary-group').forEach(group => {
-                const items = group.querySelectorAll('.stock-summary-item');
-                if (items.length > 0) {
-                    const hasVisible = Array.from(items).some(item => item.style.display !== 'none');
-                    group.style.display = hasVisible ? '' : 'none';
-                }
-            });
+            document.querySelectorAll('.btn-wrapper').forEach(el => { const name = el.getAttribute('data-name') || el.innerText; if (name) el.style.display = name.toLowerCase().includes(term) ? '' : 'none'; });
+            document.querySelectorAll('.stock-summary-item').forEach(el => { const nameTag = el.querySelector('.name'), nameText = nameTag ? nameTag.innerText : el.innerText; if (nameText) el.style.display = nameText.toLowerCase().includes(term) ? '' : 'none'; });
+            document.querySelectorAll('.summary-group').forEach(group => { const items = group.querySelectorAll('.stock-summary-item'); if (items.length > 0) group.style.display = Array.from(items).some(item => item.style.display !== 'none') ? '' : 'none'; });
         }
 
-        // 初始化按鈕位置
-        function initNavPos() { 
-            try { 
-                const pos = JSON.parse(localStorage.getItem('nav_btn_pos')); 
-                if (pos) { nT.style.left = pos.left; nT.style.top = pos.top; nT.style.right = 'auto'; } 
-            } catch (e) {} 
-        }
+        function initNavPos() { try { const pos = JSON.parse(localStorage.getItem('nav_btn_pos')); if (pos) { nT.style.left = pos.left; nT.style.top = pos.top; nT.style.right = 'auto'; } } catch (e) {} }
+        nT.onpointerdown = e => { isDragging = false; startX = e.clientX; startY = e.clientY; const rect = nT.getBoundingClientRect(); initX = rect.left; initY = rect.top; nT.setPointerCapture(e.pointerId); nT.style.transition = 'none'; };
+        nT.onpointermove = e => { if (e.buttons !== 0) { const dx = e.clientX - startX, dy = e.clientY - startY; if (Math.abs(dx) > 5 || Math.abs(dy) > 5) { isDragging = true; nT.style.left = (initX + dx) + 'px'; nT.style.top = (initY + dy) + 'px'; nT.style.right = 'auto'; } } };
+        nT.onpointerup = e => { nT.releasePointerCapture(e.pointerId); nT.style.transition = '0.3s'; if (isDragging) localStorage.setItem('nav_btn_pos', JSON.stringify({ left: nT.style.left, top: nT.style.top })); else { globalContainer.classList.toggle('nav-hidden'); updateToggleText(); } };
 
-        nT.onpointerdown = e => { 
-            isDragging = false; 
-            startX = e.clientX; startY = e.clientY; 
-            const rect = nT.getBoundingClientRect(); 
-            initX = rect.left; initY = rect.top; 
-            nT.setPointerCapture(e.pointerId); 
-            nT.style.transition = 'none'; 
-        };
-
-        nT.onpointermove = e => { 
-            if (e.buttons !== 0) { 
-                const dx = e.clientX - startX, dy = e.clientY - startY; 
-                if (Math.abs(dx) > 5 || Math.abs(dy) > 5) { 
-                    isDragging = true; 
-                    nT.style.left = (initX + dx) + 'px'; 
-                    nT.style.top = (initY + dy) + 'px'; 
-                    nT.style.right = 'auto'; 
-                } 
-            } 
-        };
-
-        nT.onpointerup = e => { 
-            nT.releasePointerCapture(e.pointerId); 
-            nT.style.transition = '0.3s'; 
-            if (isDragging) { 
-                localStorage.setItem('nav_btn_pos', JSON.stringify({ left: nT.style.left, top: nT.style.top })); 
-            } else { 
-                globalContainer.classList.toggle('nav-hidden'); 
-                updateToggleText(); 
-            } 
-        };
-
-        document.getElementById('style-btn').onclick = (e) => {
- e.stopPropagation(); document.getElementById('style-dropdown').classList.toggle('show'); };
+        document.getElementById('style-btn').onclick = (e) => { e.stopPropagation(); document.getElementById('style-dropdown').classList.toggle('show'); };
         window.onclick = (e) => { if (document.getElementById('style-dropdown').classList.contains('show') && e.target !== document.getElementById('style-btn')) document.getElementById('style-dropdown').classList.remove('show'); };
-
-        function loadPage(btn, url) { 
-            releaseWakeLock();
-            // 移除儀表板狀態，啟用 active 狀態
-            globalContainer.classList.remove('show-dashboard');
-            globalContainer.classList.add('active', 'nav-hidden'); 
-            
-            globalContent.innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`; 
-            updateToggleText();
-        }
-
-        async function lockOrientation() {
-            if (screen.orientation && screen.orientation.lock) {
-                try { await screen.orientation.lock('portrait'); } catch (e) {}
-            }
-        }
-
+        function loadPage(btn, url) { releaseWakeLock(); globalContainer.classList.remove('show-dashboard'); globalContainer.classList.add('active', 'nav-hidden'); globalContent.innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`; updateToggleText(); }
+        async function lockOrientation() { if (screen.orientation && screen.orientation.lock) try { await screen.orientation.lock('portrait'); } catch (e) {} }
         initTheme(); renderAllRows(); lockOrientation(); initNavPos(); showDashboard();
     </script>
 </body>
