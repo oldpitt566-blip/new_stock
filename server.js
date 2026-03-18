@@ -14,42 +14,44 @@ app.use(express.static(path.join(__dirname)));
 
 const PORT = process.env.PORT || 3000;
 
-app.get('/health', (req, res) => res.send('Server v3.3 (FinMind + Yahoo) is Live'));
+app.get('/health', (req, res) => res.send('Server v3.4 (TWSE Official + Yahoo) is Live'));
 
-// --- 台股引擎：FinMind API ---
-async function fetchTaiwanStock(stockId) {
+// --- 台股引擎：台灣證交所官方 API (tse/otc) ---
+async function fetchTaiwanStockOfficial(stockId) {
     try {
-        // FinMind API 不需要 Token 即可進行基礎查詢
-        const url = `https://api.finmindtrade.com/api/v4/data?dataset=TaiwanStockPrice&data_id=${stockId}&start_date=${new Date(Date.now() - 86400000 * 5).toISOString().split('T')[0]}`;
-        const { data } = await axios.get(url);
+        // 同時嘗試上市 (tse) 與 上櫃 (otc)
+        const url = `https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${stockId}.tw|otc_${stockId}.tw&_=${Date.now()}`;
+        const { data } = await axios.get(url, { timeout: 5000 });
         
-        if (data && data.data && data.data.length > 0) {
-            const history = data.data;
-            const last = history[history.length - 1];
-            const prev = history.length > 1 ? history[history.length - 2] : last;
-            
-            const price = last.close;
-            const change = price - prev.close;
-            const changePct = (change / prev.close) * 100;
+        if (data && data.msgArray && data.msgArray.length > 0) {
+            const info = data.msgArray[0];
+            const price = parseFloat(info.z || info.y); // z 是現價，y 是昨收
+            const prevClose = parseFloat(info.y);
+            const change = price - prevClose;
+            const changePct = (change / prevClose) * 100;
             
             return {
                 price: price.toFixed(2),
                 change: `${change.toFixed(2)} (${changePct.toFixed(2)}%)`,
                 trend: change > 0 ? 'up' : (change < 0 ? 'down' : 'none'),
                 symbol: stockId,
-                source: 'FinMind'
+                source: 'TWSE_Official'
             };
         }
     } catch (e) {
-        console.error(`FinMind error for ${stockId}:`, e.message);
+        console.error(`TWSE error for ${stockId}:`, e.message);
     }
     return null;
 }
 
-// --- 美股引擎：Yahoo Finance API ---
+// --- 美股引擎：Yahoo Finance API (修正版) ---
 async function fetchUSStock(stockId) {
     try {
-        const quote = await yahooFinance.quote(stockId);
+        // 修正 ESM 下的調用方式
+        const quoteFunc = yahooFinance.quote || yahooFinance.default?.quote;
+        if (typeof quoteFunc !== 'function') throw new Error('yahooFinance.quote is not available');
+        
+        const quote = await quoteFunc(stockId);
         if (quote && quote.regularMarketPrice) {
             const price = quote.regularMarketPrice;
             const change = quote.regularMarketChange || 0;
@@ -72,12 +74,12 @@ app.get('/api/stock/:id', async (req, res) => {
     const stockId = req.params.id;
     let result = null;
 
-    // 判斷是否為台股 (純數字)
+    // 判斷台股 (數字)
     if (stockId.match(/^[0-9]+$/)) {
-        result = await fetchTaiwanStock(stockId);
+        result = await fetchTaiwanStockOfficial(stockId);
     } 
     
-    // 如果不是台股，或是 FinMind 沒抓到，嘗試 Yahoo
+    // 如果不是台股，或是官方 API 沒抓到，嘗試 Yahoo
     if (!result) {
         result = await fetchUSStock(stockId);
     }
@@ -94,5 +96,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server v3.3 running on port ${PORT}`);
+    console.log(`Server v3.4 running on port ${PORT}`);
 });
