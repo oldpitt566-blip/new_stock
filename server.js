@@ -1,7 +1,11 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const yahooFinance = require('yahoo-finance2').default;
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import yahooFinance from 'yahoo-finance2';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors());
@@ -9,7 +13,7 @@ app.use(express.static(path.join(__dirname)));
 
 const PORT = process.env.PORT || 3000;
 
-app.get('/health', (req, res) => res.send('Server is alive! Version: 3.0 (Node Native)'));
+app.get('/health', (req, res) => res.send('Server v3.1 (ESM Node) is Live'));
 
 app.get('/api/stock/:id', async (req, res) => {
     const stockId = req.params.id;
@@ -18,6 +22,7 @@ app.get('/api/stock/:id', async (req, res) => {
     let result = null;
     for (const suffix of suffixes) {
         try {
+            // yahooFinance2 在 ESM 下直接 import 即可使用
             const quote = await yahooFinance.quote(stockId + suffix);
             if (quote && quote.regularMarketPrice) {
                 const price = quote.regularMarketPrice;
@@ -49,5 +54,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server v3.0 running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });

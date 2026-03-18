@@ -1,10 +1,12 @@
 {
   "name": "stock-price-server",
   "version": "1.0.0",
-  "description": "Stock price server using yahoo-finance2",
+  "description": "ESM Node.js stock server",
+  "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "npm install"
   },
   "dependencies": {
     "cors": "^2.8.5",
