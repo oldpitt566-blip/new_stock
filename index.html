@@ -161,7 +161,7 @@
         /* 分割視窗控制列樣式 */
         .split-item { position: relative; width: 100%; height: 100%; overflow: hidden; background: #000; border: 1px solid #333; }
         .split-item iframe { background: #fff; border: none; position: absolute; top: 0; left: 0; transform-origin: 0 0; }
-        .split-controls { 
+        .split-controls, .content-controls { 
             position: absolute; top: 10px; left: 10px; z-index: 20000; display: flex; gap: 5px; 
             background: rgba(0,0,0,0.7); padding: 5px; border-radius: 4px; border: 1px solid var(--primary); 
         }
@@ -380,7 +380,7 @@
         }
         body.shiang-stock-manage .stock-del-badge { display: flex; }
 
-        [data-theme="shiang"] .del-badge { color: #000 !important; }
+        [data-theme="shiang"] .del-badge, [data-theme="shiang"] .close-btn { color: #000 !important; }
 
         /* 手機強制鎖定直向 CSS 修正 */
         @media screen and (min-aspect-ratio: 13/9) and (max-width: 1024px) {
@@ -639,15 +639,16 @@
                 <div class="summary-toggle" onclick="toggleSummary('ai-summary-row')">▽</div>
                 <!-- 永久顯示區 -->
                 <div class="summary-group permanent-show">
-                    <span class="group-label">AI 核心</span>
+                    <span class="group-label">AI 標的</span>
                     <div class="stock-summary-item" id="summary-2330" onclick="openForum('2330')"><span class="name">台積電 2330</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2454" onclick="openForum('2454')"><span class="name">聯發科 2454</span><span class="price">--</span></div>
                     <div class="stock-summary-item" id="summary-2317" onclick="openForum('2317')"><span class="name">鴻海 2317</span><span class="price">--</span></div>
                     <div class="stock-summary-item" id="summary-2382" onclick="openForum('2382')"><span class="name">廣達 2382</span><span class="price">--</span></div>
-                    <div class="stock-summary-item" id="summary-6669" onclick="openForum('6669')"><span class="name">緯穎 6669</span><span class="price">--</span></div>
                 </div>
                 
                 <!-- 收合區 -->
                 <div class="summary-group collapsible-group"><span class="group-label">大腦</span>
+                    <div class="stock-summary-item" id="summary-2330" onclick="openForum('2330')"><span class="name">台積電 2330</span><span class="price">--</span></div>
                     <div class="stock-summary-item" id="summary-2454" onclick="openForum('2454')"><span class="name">聯發科 2454</span><span class="price">--</span></div>
                 </div>
                 <div class="summary-group collapsible-group"><span class="group-label">散熱</span>
@@ -671,8 +672,12 @@
                     <div class="stock-summary-item" id="summary-8046" onclick="openForum('8046')"><span class="name">南電 8046</span><span class="price">--</span></div>
                 </div>
                 <div class="summary-group collapsible-group"><span class="group-label">組裝</span>
+                    <div class="stock-summary-item" id="summary-2317" onclick="openForum('2317')"><span class="name">鴻海 2317</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2382" onclick="openForum('2382')"><span class="name">廣達 2382</span><span class="price">--</span></div>
                     <div class="stock-summary-item" id="summary-3231" onclick="openForum('3231')"><span class="name">緯創 3231</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-6669" onclick="openForum('6669')"><span class="name">緯穎 6669</span><span class="price">--</span></div>
                     <div class="stock-summary-item" id="summary-2376" onclick="openForum('2376')"><span class="name">技嘉 2376</span><span class="price">--</span></div>
+                    <div class="stock-summary-item" id="summary-2356" onclick="openForum('2356')"><span class="name">英業達 2356</span><span class="price">--</span></div>
                 </div>
                 <div class="summary-group collapsible-group"><span class="group-label">封裝</span>
                     <div class="stock-summary-item" id="summary-3711" onclick="openForum('3711')"><span class="name">日月光 3711</span><span class="price">--</span></div>
@@ -708,11 +713,13 @@
                 
                 <div class="summary-group collapsible-group">
                     <span class="group-label">貨櫃</span>
+                    <div class="stock-summary-item" id="summary-2603" onclick="openForum('2603')"><span class="name">長榮 2603</span><span class="price">--</span></div>
                     <div class="stock-summary-item" id="summary-2609" onclick="openForum('2609')"><span class="name">陽明 2609</span><span class="price">--</span></div>
                     <div class="stock-summary-item" id="summary-2615" onclick="openForum('2615')"><span class="name">萬海 2615</span><span class="price">--</span></div>
                 </div>
                 <div class="summary-group collapsible-group">
                     <span class="group-label">散裝</span>
+                    <div class="stock-summary-item" id="summary-2606" onclick="openForum('2606')"><span class="name">裕民 2606</span><span class="price">--</span></div>
                     <div class="stock-summary-item" id="summary-2637" onclick="openForum('2637')"><span class="name">慧洋 2637</span><span class="price">--</span></div>
                     <div class="stock-summary-item" id="summary-2605" onclick="openForum('2605')"><span class="name">新興 2605</span><span class="price">--</span></div>
                     <div class="stock-summary-item" id="summary-2641" onclick="openForum('2641')"><span class="name">正德 2641</span><span class="price">--</span></div>
@@ -762,19 +769,24 @@
         function openForum(id) { window.open(`https://www.cmoney.tw/forum/stock/${id}`, '_blank'); }
 
         async function fetchStockPrices() {
-            const baseStocks = ["2603", "2609", "2615", "2637", "2606", "2605", "2641", "5608", "2330", "2454", "3017", "3324", "6805", "2421", "8210", "6117", "2059", "6417", "2383", "2368", "3037", "8046", "2317", "2382", "3231", "6669", "2376", "3711", "2449", "4979", "4977", "2345", "3363", "3163", "6442", "2408", "2344", "MU", "6770", "8299", "SIMO", "2379", "5289", "3260", "4967", "2308", "2301", "2610", "2618", "2002", "2211"];
+            const baseStocks = ["2603", "2609", "2615", "2637", "2606", "2605", "2641", "5608", "2330", "2454", "3017", "3324", "6805", "2421", "8210", "6117", "2059", "6417", "2383", "2368", "3037", "8046", "2317", "2382", "3231", "6669", "2376", "2356", "3711", "2449", "4979", "4977", "2345", "3363", "3163", "6442", "2408", "2344", "MU", "6770", "8299", "SIMO", "2379", "5289", "3260", "4967", "2308", "2301", "2610", "2618", "2002", "2211"];
             const customStocks = JSON.parse(localStorage.getItem('shiang_custom_stocks') || "[]");
             const stocks = [...new Set([...baseStocks, ...customStocks])];
+            const nameCache = JSON.parse(localStorage.getItem('stock_name_cache') || "{}");
+            let cacheUpdated = false;
+
             for (const id of stocks) {
                 try {
                     const res = await fetch(`${RENDER_SERVER_URL}/api/stock/${id}`);
                     if (!res.ok) continue;
                     const data = await res.json();
                     if (data && data.price !== undefined) {
+                        if (data.name && nameCache[id] !== data.name) { nameCache[id] = data.name; cacheUpdated = true; }
                         const targetIds = [`summary-${id}`, `summary-s-${id}`];
                         targetIds.forEach(targetId => {
                             document.querySelectorAll(`[id="${targetId}"]`).forEach(container => {
                                 const pEl = container.querySelector('.price'), nEl = container.querySelector('.name'), trend = data.trend;
+                                if (nEl && data.name && !nEl.innerText.includes(data.name)) { nEl.innerText = `${data.name} ${id}`; }
                                 const style = getComputedStyle(document.body);
                                 const upColor = style.getPropertyValue('--bearish').trim() || '#FF3B30', downColor = style.getPropertyValue('--bullish').trim() || '#00FF00';
                                 const color = trend === 'up' ? upColor : (trend === 'down' ? downColor : '#ccc');
@@ -787,6 +799,7 @@
                     }
                 } catch (e) {}
             }
+            if (cacheUpdated) { localStorage.setItem('stock_name_cache', JSON.stringify(nameCache)); renderShiangCustomStocks(); }
         }
         setInterval(fetchStockPrices, 30000);
         setTimeout(fetchStockPrices, 2000);
@@ -817,11 +830,13 @@
             const listEl = document.getElementById('shiang-custom-stock-list'); if (!listEl) return;
             listEl.innerHTML = '';
             const stocks = JSON.parse(localStorage.getItem('shiang_custom_stocks') || "[]");
+            const nameCache = JSON.parse(localStorage.getItem('stock_name_cache') || "{}");
             stocks.forEach(code => {
                 const wrapper = document.createElement('div'); wrapper.className = 'stock-item-wrapper';
                 const badge = document.createElement('div'); badge.className = 'stock-del-badge'; badge.innerText = '×'; badge.onclick = (e) => { e.stopPropagation(); removeShiangStock(code); };
                 const item = document.createElement('div'); item.className = 'stock-summary-item'; item.id = `summary-s-${code}`; item.style.width = '100%'; item.onclick = () => openForum(code);
-                item.innerHTML = `<span class="name">${code}</span><span class="price">--</span>`;
+                const displayName = nameCache[code] ? `${nameCache[code]} ${code}` : code;
+                item.innerHTML = `<span class="name">${displayName}</span><span class="price">--</span>`;
                 wrapper.appendChild(badge); wrapper.appendChild(item); listEl.appendChild(wrapper);
             });
         }
@@ -947,7 +962,21 @@
 
         document.getElementById('style-btn').onclick = (e) => { e.stopPropagation(); document.getElementById('style-dropdown').classList.toggle('show'); };
         window.onclick = (e) => { if (document.getElementById('style-dropdown').classList.contains('show') && e.target !== document.getElementById('style-btn')) document.getElementById('style-dropdown').classList.remove('show'); };
-        function loadPage(btn, url) { releaseWakeLock(); globalContainer.classList.remove('show-dashboard'); globalContainer.classList.add('active', 'nav-hidden'); globalContent.innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`; updateToggleText(); }
+        function loadPage(btn, url) { 
+            releaseWakeLock(); 
+            globalContainer.classList.remove('show-dashboard'); 
+            globalContainer.classList.add('active', 'nav-hidden'); 
+            globalContent.innerHTML = `
+                <div class="content-controls">
+                    <button class="ctrl-btn" onclick="reloadPage()">🔄</button>
+                    <button class="ctrl-btn close-btn" onclick="closePage()">✕</button>
+                </div>
+                <iframe id="main-iframe" src="${url}" style="width:100%; height:100%; border:none;"></iframe>
+            `; 
+            updateToggleText(); 
+        }
+        function reloadPage() { const ifr = document.getElementById('main-iframe'); if (ifr) ifr.src = ifr.src; }
+        function closePage() { releaseWakeLock(); globalContainer.classList.remove('active'); globalContainer.classList.remove('nav-hidden'); globalContent.innerHTML = ''; updateToggleText(); }
         async function lockOrientation() { if (screen.orientation && screen.orientation.lock) try { await screen.orientation.lock('portrait'); } catch (e) {} }
         initTheme(); renderAllRows(); lockOrientation(); initNavPos(); showDashboard();
     </script>
