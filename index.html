@@ -18,6 +18,7 @@
             --btn-bg: rgba(45, 45, 45, 0.8); --text: #fff; --gold: #fff;
             --glow: rgba(255, 255, 255, 0.3); --bg-img: url('hsiang.png');
             --btn-gradient: linear-gradient(transparent, transparent);
+            --bullish: #00FF00; --bearish: #FF3B30;
         }
 
         /* 祥老師風格專屬修正：確保按鈕與文字可見 */
@@ -757,7 +758,12 @@
                                 const pEl = container.querySelector('.price');
                                 const nEl = container.querySelector('.name'); // 取得名稱標籤
                                 const trend = data.trend;
-                                const color = trend === 'up' ? '#FF3B30' : (trend === 'down' ? '#00FF00' : '#ccc');
+                                
+                                // 動態獲取當前風格的漲跌顏色
+                                const style = getComputedStyle(document.body);
+                                const upColor = style.getPropertyValue('--bearish').trim() || '#FF3B30'; // 台股習慣紅漲
+                                const downColor = style.getPropertyValue('--bullish').trim() || '#00FF00'; // 台股習慣綠跌
+                                const color = trend === 'up' ? upColor : (trend === 'down' ? downColor : '#ccc');
                                 
                                 // 修正：祥老師風格下名稱強制為白色
                                 if (document.body.getAttribute('data-theme') === 'shiang') {
