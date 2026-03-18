@@ -3,7 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import axios from 'axios';
-import yahooFinance from 'yahoo-finance2';
+import * as cheerio from 'cheerio';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,74 +14,77 @@ app.use(express.static(path.join(__dirname)));
 
 const PORT = process.env.PORT || 3000;
 
-app.get('/health', (req, res) => res.send('Server v3.4 (TWSE Official + Yahoo) is Live'));
+const HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept-Language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7'
+};
 
-// --- 台股引擎：台灣證交所官方 API (tse/otc) ---
-async function fetchTaiwanStockOfficial(stockId) {
+app.get('/health', (req, res) => res.send('Server v3.5 (Google + Yahoo Web) is Live'));
+
+// --- 核心引擎：Google Finance (極速且穩定) ---
+async function fetchFromGoogle(stockId) {
     try {
-        // 同時嘗試上市 (tse) 與 上櫃 (otc)
-        const url = `https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${stockId}.tw|otc_${stockId}.tw&_=${Date.now()}`;
-        const { data } = await axios.get(url, { timeout: 5000 });
+        // 判斷台股或是美股 (台股補上 :TPE 或 :TWO)
+        let query = stockId;
+        if (stockId.match(/^[0-9]+$/)) {
+            // 先試上市 TPE，不行再試上櫃 TWO (Google Finance 格式)
+            query = `${stockId}:TPE`;
+        }
+
+        const url = `https://www.google.com/finance/quote/${query}`;
+        const { data } = await axios.get(url, { headers: HEADERS, timeout: 5000 });
+        const $ = cheerio.load(data);
+
+        const price = $('.YMlS1d .YMlS1d').first().text() || $('.fxKbKc').first().text();
+        const changeStr = $('.Jw7X6b').first().text(); // 包含漲跌點數與百分比
         
-        if (data && data.msgArray && data.msgArray.length > 0) {
-            const info = data.msgArray[0];
-            const price = parseFloat(info.z || info.y); // z 是現價，y 是昨收
-            const prevClose = parseFloat(info.y);
-            const change = price - prevClose;
-            const changePct = (change / prevClose) * 100;
-            
+        if (price) {
+            const isUp = $('.Jw7X6b').first().hasClass('P23S3b') || changeStr.includes('+');
+            const isDown = $('.Jw7X6b').first().hasClass('pY6Snc') || changeStr.includes('-');
+
             return {
-                price: price.toFixed(2),
-                change: `${change.toFixed(2)} (${changePct.toFixed(2)}%)`,
-                trend: change > 0 ? 'up' : (change < 0 ? 'down' : 'none'),
-                symbol: stockId,
-                source: 'TWSE_Official'
+                price: price.replace(/[^0-9.]/g, ''),
+                change: changeStr,
+                trend: isUp ? 'up' : (isDown ? 'down' : 'none'),
+                symbol: query,
+                source: 'Google'
             };
         }
-    } catch (e) {
-        console.error(`TWSE error for ${stockId}:`, e.message);
-    }
+    } catch (e) {}
     return null;
 }
 
-// --- 美股引擎：Yahoo Finance API (修正版) ---
-async function fetchUSStock(stockId) {
+// --- 備援引擎：Yahoo 台灣網頁版 (含 Referer 偽裝) ---
+async function fetchFromYahooWeb(stockId) {
     try {
-        // 修正 ESM 下的調用方式
-        const quoteFunc = yahooFinance.quote || yahooFinance.default?.quote;
-        if (typeof quoteFunc !== 'function') throw new Error('yahooFinance.quote is not available');
-        
-        const quote = await quoteFunc(stockId);
-        if (quote && quote.regularMarketPrice) {
-            const price = quote.regularMarketPrice;
-            const change = quote.regularMarketChange || 0;
-            const changePct = quote.regularMarketChangePercent || 0;
-            return {
-                price: price.toFixed(2),
-                change: `${change.toFixed(2)} (${changePct.toFixed(2)}%)`,
-                trend: change > 0 ? 'up' : (change < 0 ? 'down' : 'none'),
-                symbol: stockId,
-                source: 'YahooAPI'
-            };
+        const url = `https://tw.stock.yahoo.com/quote/${stockId}.TW`;
+        const { data } = await axios.get(url, { 
+            headers: { ...HEADERS, 'Referer': 'https://tw.stock.yahoo.com/' },
+            timeout: 5000 
+        });
+        const $ = cheerio.load(data);
+        const price = $('.Fz\\(32px\\)').first().text();
+        const change = $('.Fz\\(20px\\)').first().text();
+        let trend = 'none';
+        if ($('.Fz\\(20px\\)').first().hasClass('C($c-trend-up)')) trend = 'up';
+        else if ($('.Fz\\(20px\\)').first().hasClass('C($c-trend-down)')) trend = 'down';
+
+        if (price && price !== '-') {
+            return { price, change, trend, symbol: stockId, source: 'YahooWeb' };
         }
-    } catch (e) {
-        console.error(`Yahoo error for ${stockId}:`, e.message);
-    }
+    } catch (e) {}
     return null;
 }
 
 app.get('/api/stock/:id', async (req, res) => {
     const stockId = req.params.id;
-    let result = null;
-
-    // 判斷台股 (數字)
-    if (stockId.match(/^[0-9]+$/)) {
-        result = await fetchTaiwanStockOfficial(stockId);
-    } 
     
-    // 如果不是台股，或是官方 API 沒抓到，嘗試 Yahoo
-    if (!result) {
-        result = await fetchUSStock(stockId);
+    // 1. 優先使用 Google Finance (最穩)
+    let result = await fetchFromGoogle(stockId);
+    
+    // 2. 如果 Google 沒抓到台股，嘗試 Yahoo 網頁版
+    if (!result && stockId.match(/^[0-9]+$/)) {
+        result = await fetchFromYahooWeb(stockId);
     }
 
     if (result) {
@@ -96,5 +99,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server v3.4 running on port ${PORT}`);
+    console.log(`Server v3.5 running on port ${PORT}`);
 });
