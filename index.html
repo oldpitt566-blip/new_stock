@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>祥老師投資戰情室 - 核心功能全修復版</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
             --primary: #006241; --accent: #e60012;  
@@ -25,7 +26,7 @@
         [data-theme="shiang"] .btn { color: #fff !important; background: var(--btn-bg) !important; border: 1px solid #444; }
         [data-theme="shiang"] .row-label { color: #fff; border-left-color: #fff; }
         [data-theme="shiang"] #search-input { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid #444; }
-        [data-theme="shiang"] #clock-wrapper { background: rgba(255,255,255,0.05); color: #fff; }
+        [data-theme="shiang"] #clock-wrapper { color: #fff; }
 
         [data-theme="ai"] {
             --primary: #6c5ce7; --accent: #00d2ff; --bg-nav: rgba(10, 10, 35, 0.85); 
@@ -74,7 +75,7 @@
         #container.active #content.split-grid { display: grid; gap: 5px; padding: 5px; box-sizing: border-box; }
         #container.hide-ticker #content { top: 0; height: 100%; }
 
-        #clock { font-family: monospace; font-size: 1.4rem; color: #ffffff; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,1); display: block; min-width: 120px; text-align: center; }
+        #clock { font-family: monospace; font-size: 2rem; color: #ffffff; font-weight: 900; text-shadow: 0 0 10px rgba(255,255,255,0.4); display: block; width: 100%; text-align: center; }
 
         .btn, #search-input { 
             padding: 15px 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px;
@@ -97,16 +98,27 @@
             font-size: 1.1rem !important; padding: 0 10px !important;
         }
 
-        .nav-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; width: 100%; max-width: 1200px; margin: 0 auto 25px; }
-        .mini-row { display: flex; gap: 10px; width: 100%; max-width: 1200px; margin: 0 auto 25px; justify-content: space-between; align-items: stretch; }
+        #welcome-text { text-align: center; width: 100%; margin-bottom: 20px; }
+        #welcome-text h1 { margin: 0; cursor: pointer; }
+        #welcome-text p { margin: 5px 0 0; opacity: 0.8; }
+
+        .nav-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; width: 100%; max-width: 1200px; margin: 0 auto 10px; }
+        .mini-row { display: flex; gap: 10px; width: 100%; max-width: 1200px; margin: 0 auto 10px; justify-content: space-between; align-items: stretch; }
         .mini-row > * { flex: 1; min-width: 0; }
 
         .mini-row .btn { 
-            font-size: 1.3rem; display: flex; align-items: center; justify-content: center;
+            font-size: 18px; display: flex; align-items: center; justify-content: center;
         }
         #clock-wrapper { 
-            min-height: 50px !important; height: 50px !important; 
-            font-size: 1.1rem; padding: 0 10px; display: flex; align-items: center; justify-content: center;
+            padding: 15px 10px; display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.15); border-radius: 4px;
+            background: var(--btn-bg);
+            background-image: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.6) 100%), var(--btn-gradient);
+            background-size: 100% 100%, 200% 200%;
+            color: #fff; font-weight: 900; font-size: 1.5rem; 
+            text-align: center; width: 100%; box-sizing: border-box; min-height: 85px;
+            box-shadow: inset 0 0 15px rgba(255,255,255,0.05); border-bottom: 4px solid rgba(0,0,0,0.4);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
         #search-input { font-size: 1.3rem; }
         #search-input::placeholder { color: rgba(255,255,255,0.6); }
@@ -164,11 +176,11 @@
             align-items: center; justify-content: center; text-shadow: 0 1px 2px #000; 
         }
 
-        .row-label { text-align: left; max-width: 1200px; margin: 0 auto 12px; font-weight: 900; font-size: 1.2rem; padding-left: 15px; border-left: 6px solid var(--primary); text-transform: uppercase; }
+        .row-label { text-align: left; max-width: 1200px; margin: 15px auto 8px; font-weight: 900; font-size: 1.2rem; padding-left: 15px; border-left: 6px solid var(--primary); text-transform: uppercase; }
         
         /* 股價展示列基礎樣式 */
         .stock-summary-row, .ai-summary-row, .shiang-summary-row { 
-            display: flex; flex-wrap: wrap; gap: 8px; width: 100%; max-width: 1200px; margin: 0 auto 15px; 
+            display: flex; flex-wrap: wrap; gap: 8px; width: 100%; max-width: 1200px; margin: 0 auto 10px; 
             justify-content: flex-start; padding: 0 15px; box-sizing: border-box;
             z-index: 100; position: relative;
         }
@@ -221,7 +233,7 @@
             margin-bottom: 5px;
         }
         /* 祥老師風格專屬：熱門股容器 */
-        .shiang-hot-stocks { display: none; width: 100%; max-width: 1200px; margin: 0 auto 15px; padding: 15px; box-sizing: border-box; background: #333; border: 1px solid #444; border-radius: 8px; position: relative; }
+        .shiang-hot-stocks { display: none; width: 100%; max-width: 1200px; margin: 0 auto 10px; padding: 15px; box-sizing: border-box; background: #333; border: 1px solid #444; border-radius: 8px; position: relative; }
         [data-theme="shiang"] .shiang-hot-stocks { display: block !important; }
         [data-theme="shiang"] .shiang-hot-stocks.is-collapsed { display: none !important; }
 
@@ -357,6 +369,7 @@
         body.manage-mode .del-badge { display: flex; }
         @keyframes shake { 0% { transform: rotate(0deg) } 25% { transform: rotate(1deg) } 75% { transform: rotate(-1deg) } 100% { transform: rotate(0deg) } }
         body.manage-mode .btn-wrapper:not(.dragging) .btn { animation: shake 0.3s infinite; pointer-events: none; }
+        [data-theme="shiang"] .del-badge { color: #000 !important; }
 
         /* 手機強制鎖定直向 CSS 修正 */
         @media screen and (min-aspect-ratio: 13/9) and (max-width: 1024px) {
@@ -389,6 +402,11 @@
                 #nav { padding: 60px 10px 40px; } 
                 
                 #search-input { min-height: 42px !important; height: 42px !important; font-size: 1.1rem; }
+                #clock-wrapper { min-height: 42px !important; height: 42px !important; padding: 0 !important; }
+                #clock { font-size: 1.6rem !important; }
+                .row-label { margin-top: 6px !important; margin-bottom: 4px !important; font-size: 0.95rem !important; }
+                .nav-row, .stock-summary-row, .ai-summary-row, .shiang-summary-row, .shiang-hot-stocks { margin-bottom: 8px !important; }
+                .summary-group { padding: 6px !important; margin-bottom: 4px !important; }
                 .mini-row { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 10px; height: auto !important; }
                 #clock-wrapper, #search-input { grid-column: span 2; }
                 .nav-row:not(.mini-row) { grid-template-columns: repeat(2, 1fr); }
@@ -450,14 +468,14 @@
         <button id="nav-toggle">選單 🔽</button>
         <div id="nav">
             <div id="split-hint">💡 請選擇欲顯示的項目，選完後點擊「開始分割」</div>
-            <div id="welcome-text"><h1 onclick="goHome()">祥老師戰情室</h1><p>監控即時行情，衝刺獲利</p></div>
+            <div id="welcome-text"><h1 onclick="goHome()">祥老師戰情室 V2</h1><p>監控即時行情，衝刺獲利</p></div>
             <div class="nav-row mini-row">
                 <div id="clock-wrapper"><div id="clock">00:00:00</div></div>
                 <button id="btn-dash" class="btn" style="border-left: 4px solid var(--gold);" onclick="showDashboard()">儀表板</button>
-                <button id="btn-split" class="btn" onclick="toggleSplitMode()">分割</button>
+                <button id="btn-split" class="btn" style="display:none;" onclick="toggleSplitMode()">分割</button>
                 <button id="apply-split" class="btn" style="display:none; background:var(--accent);" onclick="startSplit()">開始分割</button>
                 <button id="btn-add" class="btn" onclick="addBtn()">新增</button>
-                <button id="btn-save" class="btn" onclick="saveCurrentLayout()">儲存</button>
+                <button id="btn-save" class="btn" style="display:none;" onclick="saveCurrentLayout()">儲存</button>
                 <button id="manage-btn" class="btn" onclick="toggleManageMode()">管理</button>
                 <div class="style-select-wrapper">
                     <button id="style-btn" class="btn">風格</button>
@@ -485,9 +503,9 @@
 
             <!-- 標籤按鈕列 -->
             <div class="shiang-tab-row">
-                <button class="shiang-tab-btn" onclick="toggleShiangTab('shiang-ai-content', this)">AI伺服器 ▽</button>
+                <button class="shiang-tab-btn" onclick="toggleShiangTab('shiang-ai-content', this)">黃老闆 ▽</button>
                 <button class="shiang-tab-btn" onclick="toggleShiangTab('shiang-memory-content', this)">記憶體 ▽</button>
-                <button class="shiang-tab-btn" onclick="toggleShiangTab('shiang-maritime-content', this)">貨櫃航運 ▽</button>
+                <button class="shiang-tab-btn" onclick="toggleShiangTab('shiang-maritime-content', this)">航運 ▽</button>
                 <button class="shiang-tab-btn" onclick="toggleShiangTab('shiang-steel-content', this)">鋼鐵 ▽</button>
             </div>
 
@@ -823,17 +841,136 @@
                 
                 data.forEach(b => {
                     const w = document.createElement('div'); w.className = 'btn-wrapper';
+                    // 儲存原始資料供排序後重建 layout 使用
+                    w.setAttribute('data-url', b.url);
+                    if (b.isExt) w.setAttribute('data-isext', 'true');
+
+                    const isDefault = ["row-1", "row-2", "row-3"].some(r => defaultBtns[r].some(db => db.name === b.name));
+                    if (!isDefault) w.setAttribute('data-custom', 'true');
+
                     const btn = document.createElement('button'); btn.className = 'btn'; btn.innerText = b.name + (b.isExt ? " ↗" : "");
                     btn.onclick = () => b.isExt ? window.open(b.url, '_blank') : loadPage(btn, b.url);
                     w.appendChild(btn); row.appendChild(w);
                 });
+
+                // 初始化拖曳功能
+                new Sortable(row, {
+                    animation: 150,
+                    ghostClass: 'dragging',
+                    onEnd: saveCurrentLayout
+                });
             });
         }
 
+        function saveCurrentLayout() {
+            const layout = {};
+            ["row-1", "row-2", "row-3"].forEach(rId => {
+                const row = document.getElementById(rId);
+                layout[rId] = Array.from(row.querySelectorAll('.btn-wrapper')).map(w => {
+                    const btn = w.querySelector('.btn');
+                    return {
+                        name: btn.innerText.replace(' ↗', ''),
+                        url: w.getAttribute('data-url'),
+                        isExt: w.getAttribute('data-isext') === 'true'
+                    };
+                });
+            });
+            localStorage.setItem('user_layout', JSON.stringify(layout));
+        }
+
+        function addBtn() {
+            const name = prompt("請輸入按鈕名稱:");
+            const url = prompt("請輸入 URL (包含 http:// 或 https://):");
+            if (name && url) {
+                const custom = JSON.parse(localStorage.getItem('user_btns') || "[]");
+                custom.push({ name, url, isExt: true });
+                localStorage.setItem('user_btns', JSON.stringify(custom));
+                renderAllRows();
+            }
+        }
+
+        function toggleManageMode() {
+            isManageMode = !isManageMode;
+            document.body.classList.toggle('manage-mode', isManageMode);
+            const btn = document.getElementById('manage-btn');
+            if (btn) btn.innerText = isManageMode ? '完成' : '管理';
+            
+            if (!isManageMode) {
+                renderAllRows();
+            } else {
+                // 僅在標記為 data-custom="true" 的按鈕上顯示刪除標誌
+                document.querySelectorAll('.btn-wrapper[data-custom="true"]').forEach((w) => {
+                    if (!w.querySelector('.del-badge')) {
+                        const badge = document.createElement('div');
+                        badge.className = 'del-badge';
+                        badge.innerHTML = '×';
+                        badge.onclick = (e) => {
+                            e.stopPropagation();
+                            deleteBtn(w);
+                        };
+                        w.appendChild(badge);
+                    }
+                });
+            }
+        }
+
+        function deleteBtn(wrapper) {
+            const name = wrapper.querySelector('.btn').innerText.replace(' ↗', '');
+            
+            // 1. 從 user_btns 自定義清單中移除
+            const custom = JSON.parse(localStorage.getItem('user_btns') || "[]");
+            localStorage.setItem('user_btns', JSON.stringify(custom.filter(b => b.name !== name)));
+            
+            // 2. 從 user_layout 排序配置中移除
+            let saved = JSON.parse(localStorage.getItem('user_layout') || "{}");
+            for (let rId in saved) {
+                if (Array.isArray(saved[rId])) {
+                    saved[rId] = saved[rId].filter(b => b.name !== name);
+                }
+            }
+            localStorage.setItem('user_layout', JSON.stringify(saved));
+            
+            // 3. 重新渲染
+            renderAllRows();
+            
+            // 4. 如果目前還在管理模式，重新顯示所有 X 徽章
+            if (isManageMode) {
+                isManageMode = false; // 先重置狀態，讓 toggleManageMode 重新執行啟動邏輯
+                toggleManageMode();
+            }
+        }
+
+        // 螢幕恆亮控制
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator && wakeLock === null) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) {}
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release().then(() => { wakeLock = null; });
+            }
+        }
+
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState === 'visible' && globalContainer.classList.contains('show-dashboard')) {
+                await requestWakeLock();
+            }
+        });
+
         function setTheme(t) { localStorage.setItem('user_theme', t); if(t==='maritime') document.body.removeAttribute('data-theme'); else document.body.setAttribute('data-theme', t); document.getElementById('style-dropdown').classList.remove('show'); renderAllRows(); }
         function initTheme() { setTheme(localStorage.getItem('user_theme') || 'maritime'); }
-        function goHome() { globalContainer.classList.add('nav-hidden'); globalContainer.classList.remove('active', 'show-dashboard', 'hide-ticker'); globalContent.innerHTML = ''; }
+        function goHome() { 
+            releaseWakeLock();
+            globalContainer.classList.add('nav-hidden'); 
+            globalContainer.classList.remove('active', 'show-dashboard', 'hide-ticker'); 
+            globalContent.innerHTML = ''; 
+        }
         function showDashboard() { 
+            requestWakeLock();
             globalContainer.classList.remove('active'); 
             globalContainer.classList.add('show-dashboard', 'nav-hidden', 'hide-ticker'); 
             updateToggleText(); 
@@ -929,6 +1066,7 @@
         window.onclick = (e) => { if (document.getElementById('style-dropdown').classList.contains('show') && e.target !== document.getElementById('style-btn')) document.getElementById('style-dropdown').classList.remove('show'); };
 
         function loadPage(btn, url) { 
+            releaseWakeLock();
             // 移除儀表板狀態，啟用 active 狀態
             globalContainer.classList.remove('show-dashboard');
             globalContainer.classList.add('active', 'nav-hidden'); 
