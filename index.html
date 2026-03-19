@@ -736,7 +736,7 @@
 
     <script>
         const globalContainer = document.getElementById('container'), globalContent = document.getElementById('content');
-        let refreshConfigs = [], wakeLock = null, isManageMode = false;
+        let refreshConfigs = [], wakeLock = null, isManageMode = false, sortableInstances = [];
 
         const defaultBtns = {
             "row-1": [{name:"台股現貨", url:"https://www.cmoney.tw/forum/stock"},{name:"台指期夜盤", url:"https://www.cmoney.tw/forum/futures/TXF1?s=p"},{name:"美股現貨", url:"https://www.cmoney.tw/usfinance/ixic"},{name:"美股期貨", url:"https://www.cmoney.tw/usfinance/nq"}],
@@ -862,6 +862,10 @@
             let saved = JSON.parse(localStorage.getItem('user_layout') || "{}");
             const custom = JSON.parse(localStorage.getItem('user_btns') || "[]");
             if (theme === 'shiang') renderShiangCustomStocks();
+            
+            sortableInstances.forEach(s => s.destroy());
+            sortableInstances = [];
+
             ["row-1", "row-2", "row-3"].forEach(rId => {
                 const row = document.getElementById(rId); if(!row) return; row.innerHTML = '';
                 let data = (saved && saved[rId]) ? saved[rId] : [...defaultBtns[rId]];
@@ -876,7 +880,11 @@
                     btn.onclick = () => b.isExt ? window.open(b.url, '_blank') : loadPage(btn, b.url);
                     w.appendChild(btn); row.appendChild(w);
                 });
-                new Sortable(row, { animation: 150, ghostClass: 'dragging', onEnd: saveCurrentLayout });
+                const s = new Sortable(row, { 
+                    animation: 150, ghostClass: 'dragging', onEnd: saveCurrentLayout,
+                    disabled: !isManageMode, delay: 200, delayOnTouchOnly: true, touchStartThreshold: 10
+                });
+                sortableInstances.push(s);
             });
         }
 
@@ -905,6 +913,9 @@
             isManageMode = !isManageMode;
             document.body.classList.toggle('manage-mode', isManageMode);
             const btn = document.getElementById('manage-btn'); if (btn) btn.innerText = isManageMode ? '完成' : '管理';
+            
+            sortableInstances.forEach(s => s.option('disabled', !isManageMode));
+
             if (!isManageMode) renderAllRows();
             else {
                 document.querySelectorAll('.btn-wrapper[data-custom="true"]').forEach((w) => {
