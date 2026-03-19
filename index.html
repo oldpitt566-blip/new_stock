@@ -786,7 +786,8 @@
                         targetIds.forEach(targetId => {
                             document.querySelectorAll(`[id="${targetId}"]`).forEach(container => {
                                 const pEl = container.querySelector('.price'), nEl = container.querySelector('.name'), trend = data.trend;
-                                if (nEl && data.name && !nEl.innerText.includes(data.name)) { nEl.innerText = `${data.name} ${id}`; }
+                                // 強化名稱顯示：如果目前只顯示代碼，立即更新為「名稱 代碼」
+                                if (nEl && data.name && (nEl.innerText === id || nEl.innerText === `${id} ${id}`)) { nEl.innerText = `${data.name} ${id}`; }
                                 const style = getComputedStyle(document.body);
                                 const upColor = style.getPropertyValue('--bearish').trim() || '#FF3B30', downColor = style.getPropertyValue('--bullish').trim() || '#00FF00';
                                 const color = trend === 'up' ? upColor : (trend === 'down' ? downColor : '#ccc');
@@ -821,18 +822,18 @@
                     const data = await res.json();
                     if (!data || data.price === undefined) { alert("查無此股票報價資料"); return; }
 
-                    // 更新名稱快取
+                    // 先更新名稱快取
+                    const nameCache = JSON.parse(localStorage.getItem('stock_name_cache') || "{}");
                     if (data.name) {
-                        const nameCache = JSON.parse(localStorage.getItem('stock_name_cache') || "{}");
                         nameCache[upperCode] = data.name;
                         localStorage.setItem('stock_name_cache', JSON.stringify(nameCache));
                     }
 
-                    // 加入清單並儲存
+                    // 再加入代號清單並儲存
                     stocks.push(upperCode);
                     localStorage.setItem('shiang_custom_stocks', JSON.stringify(stocks));
                     
-                    // 重新渲染並啟動背景更新
+                    // 確保資料已入庫後再渲染
                     renderShiangCustomStocks();
                     fetchStockPrices();
                 } catch (e) {
