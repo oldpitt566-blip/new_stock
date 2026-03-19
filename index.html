@@ -54,9 +54,9 @@
 
         #nav { 
             display: flex; flex-direction: column; align-items: center; gap: 10px;
-            position: absolute; top: 40px; left: 0; width: 100%; height: calc(100% - 40px);
-            padding: 20px 20px 40px; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            background: var(--bg-nav); z-index: 25000; overflow-y: auto; box-sizing: border-box;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            padding: 60px 20px 40px; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--bg-nav); z-index: 40000; overflow-y: auto; box-sizing: border-box;
             border-bottom: 5px solid var(--primary);
         }
         #container.nav-hidden #nav { transform: translateY(-110%); }
@@ -804,12 +804,40 @@
         setInterval(fetchStockPrices, 30000);
         setTimeout(fetchStockPrices, 2000);
 
-        function addShiangStock() {
+        async function addShiangStock() {
             const code = prompt("請輸入股票代碼:");
             if (code && code.trim()) {
                 const upperCode = code.trim().toUpperCase();
+                
+                // 檢查是否已存在
                 let stocks = JSON.parse(localStorage.getItem('shiang_custom_stocks') || "[]");
-                if (!stocks.includes(upperCode)) { stocks.push(upperCode); localStorage.setItem('shiang_custom_stocks', JSON.stringify(stocks)); renderShiangCustomStocks(); fetchStockPrices(); }
+                if (stocks.includes(upperCode)) { alert("此股票已在清單中"); return; }
+
+                try {
+                    // 立即驗證代碼有效性
+                    const res = await fetch(`${RENDER_SERVER_URL}/api/stock/${upperCode}`);
+                    if (!res.ok) { alert("查無此股票代碼，請確認後再試"); return; }
+                    
+                    const data = await res.json();
+                    if (!data || data.price === undefined) { alert("查無此股票報價資料"); return; }
+
+                    // 更新名稱快取
+                    if (data.name) {
+                        const nameCache = JSON.parse(localStorage.getItem('stock_name_cache') || "{}");
+                        nameCache[upperCode] = data.name;
+                        localStorage.setItem('stock_name_cache', JSON.stringify(nameCache));
+                    }
+
+                    // 加入清單並儲存
+                    stocks.push(upperCode);
+                    localStorage.setItem('shiang_custom_stocks', JSON.stringify(stocks));
+                    
+                    // 重新渲染並啟動背景更新
+                    renderShiangCustomStocks();
+                    fetchStockPrices();
+                } catch (e) {
+                    alert("連線異常，請稍後再試");
+                }
             }
         }
 
